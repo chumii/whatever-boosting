@@ -238,6 +238,19 @@ option {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+.data-table th[data-sort] {
+  cursor: pointer;
+  user-select: none;
+}
+.data-table th[data-sort]:hover { color: var(--text); }
+.data-table th[data-sort]::after {
+  content: "↕";
+  display: inline-block;
+  margin-left: 4px;
+  opacity: 0.25;
+}
+.data-table th.sort-asc::after { content: "↑"; opacity: 1; color: var(--text); }
+.data-table th.sort-desc::after { content: "↓"; opacity: 1; color: var(--text); }
 .data-table tbody tr:hover { background: var(--surface-2); }
 .data-table td.num,
 .data-table th.num { font-family: var(--font-mono); text-align: right; }

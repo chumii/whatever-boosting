@@ -10,6 +10,9 @@ const state = {
 
 let liveChannel = null;
 
+const charSort = { field: "player", dir: "asc" };
+const CHAR_NUMERIC_FIELDS = new Set(["current_key_level", "rating", "item_level"]);
+
 const clientId = crypto.randomUUID();
 let lastAppliedGeneratedAt = null;
 let pushAppStateTimer = null;
@@ -133,10 +136,48 @@ const CHAR_FIELDS = {
   item_level: { type: "number", step: "0.1" },
 };
 
+function getCharSortValue(c, field) {
+  if (field === "player") return byId(state.players, c.player_id)?.name || "";
+  if (field === "is_active") return c.is_active ? 1 : 0;
+  if (field === "key_active") return c.key_active === false ? 0 : 1;
+  return c[field];
+}
+
+function compareCharacters(a, b) {
+  const { field, dir } = charSort;
+  const numeric = CHAR_NUMERIC_FIELDS.has(field);
+  const av = getCharSortValue(a, field);
+  const bv = getCharSortValue(b, field);
+  let cmp;
+  if (numeric) {
+    cmp = (av == null ? -Infinity : Number(av)) - (bv == null ? -Infinity : Number(bv));
+  } else if (typeof av === "number" && typeof bv === "number") {
+    cmp = av - bv;
+  } else {
+    cmp = String(av || "").localeCompare(String(bv || ""));
+  }
+  if (cmp === 0 && field !== "player") {
+    const ap = byId(state.players, a.player_id)?.name || "";
+    const bp = byId(state.players, b.player_id)?.name || "";
+    cmp = ap.localeCompare(bp);
+  }
+  return dir === "desc" ? -cmp : cmp;
+}
+
+function updateCharSortIndicators() {
+  $$("#characters-table thead th[data-sort]").forEach((th) => {
+    const active = th.dataset.sort === charSort.field;
+    th.classList.toggle("sort-asc", active && charSort.dir === "asc");
+    th.classList.toggle("sort-desc", active && charSort.dir === "desc");
+  });
+}
+
 function renderCharactersTable() {
   const tbody = $("#characters-table tbody");
   tbody.innerHTML = "";
-  for (const c of state.characters) {
+  updateCharSortIndicators();
+  const sorted = [...state.characters].sort(compareCharacters);
+  for (const c of sorted) {
     const player = byId(state.players, c.player_id);
     const cls = classByName(c.class);
     const color = cls ? cls.color : "#ffffff";
@@ -465,6 +506,19 @@ function setupCharacterCrud() {
   $("#characters-table").addEventListener("change", async (e) => {
     const cb = e.target.closest('input[type="checkbox"][data-action]');
     if (cb) await handleCharCheckboxToggle(cb);
+  });
+
+  $("#characters-table thead").addEventListener("click", (e) => {
+    const th = e.target.closest("th[data-sort]");
+    if (!th) return;
+    const field = th.dataset.sort;
+    if (charSort.field === field) {
+      charSort.dir = charSort.dir === "asc" ? "desc" : "asc";
+    } else {
+      charSort.field = field;
+      charSort.dir = "asc";
+    }
+    renderCharactersTable();
   });
 
   $("#characters-table").addEventListener("click", async (e) => {
