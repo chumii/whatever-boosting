@@ -185,6 +185,24 @@ main {
 }
 .btn-ghost:hover { color: var(--text); background: var(--surface-2); }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  line-height: 0;
+}
+.btn-ghost.btn-icon { padding: 4px; }
+.btn-icon svg { display: block; }
+.btn-icon.btn-danger-hover:hover { color: var(--red); }
+
+.btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-with-icon svg { display: block; }
+
 input, select, textarea {
   background: var(--bg);
   border: 1px solid var(--border-strong);
@@ -353,7 +371,7 @@ td.num .cell-editor { text-align: right; font-family: var(--font-mono); }
   font-size: 12px;
 }
 .overview:empty::before {
-  content: "Select players to see their characters and keys.";
+  content: "Spieler auswählen, um Charaktere und Keys zu sehen.";
   display: block;
   padding: 10px 12px;
   color: var(--muted);

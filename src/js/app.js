@@ -18,6 +18,10 @@ let pendingAppStatePatch = {};
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
+const ICON_COPY = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+const ICON_TRASH = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`;
+const ICON_PENCIL = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+
 const byId = (rows, id) => rows.find((r) => r.id === id);
 const charsForPlayer = (playerId) =>
   state.characters.filter((c) => c.player_id === playerId);
@@ -89,7 +93,7 @@ function renderPlayersTable() {
       ${cell("discord_name", escapeHtml(p.discord_name || ""))}
       <td class="num">${charsForPlayer(p.id).length}</td>
       <td class="actions">
-        <button class="btn btn-ghost" data-action="delete-player" data-id="${p.id}">Delete</button>
+        <button class="btn btn-ghost btn-icon btn-danger-hover" data-action="delete-player" data-id="${p.id}" title="Delete" aria-label="Delete">${ICON_TRASH}</button>
       </td>`;
     tbody.appendChild(tr);
   }
@@ -155,7 +159,7 @@ function renderCharactersTable() {
       ${cell("rating", c.rating ?? "", "num")}
       ${cell("item_level", c.item_level ?? "", "num")}
       <td class="actions">
-        <button class="btn btn-ghost" data-action="delete-character" data-id="${c.id}">Delete</button>
+        <button class="btn btn-ghost btn-icon btn-danger-hover" data-action="delete-character" data-id="${c.id}" title="Delete" aria-label="Delete">${ICON_TRASH}</button>
       </td>`;
     tbody.appendChild(tr);
   }
@@ -292,8 +296,8 @@ function renderSeasonsTable() {
       <td>${escapeHtml(s.name)}</td>
       <td>${s.is_current ? '<span style="color:var(--green)">●</span> current' : ""}</td>
       <td class="actions">
-        <button class="btn btn-ghost" data-action="edit-season" data-id="${s.id}">Edit</button>
-        <button class="btn btn-ghost" data-action="delete-season" data-id="${s.id}">Delete</button>
+        <button class="btn btn-ghost btn-icon" data-action="edit-season" data-id="${s.id}" title="Edit" aria-label="Edit">${ICON_PENCIL}</button>
+        <button class="btn btn-ghost btn-icon btn-danger-hover" data-action="delete-season" data-id="${s.id}" title="Delete" aria-label="Delete">${ICON_TRASH}</button>
       </td>`;
     tbody.appendChild(tr);
   }
@@ -310,8 +314,8 @@ function renderDungeonsTable() {
       <td>${escapeHtml(d.name)}</td>
       <td>${escapeHtml(d.alias || "")}</td>
       <td class="actions">
-        <button class="btn btn-ghost" data-action="edit-dungeon" data-id="${d.id}">Edit</button>
-        <button class="btn btn-ghost" data-action="delete-dungeon" data-id="${d.id}">Delete</button>
+        <button class="btn btn-ghost btn-icon" data-action="edit-dungeon" data-id="${d.id}" title="Edit" aria-label="Edit">${ICON_PENCIL}</button>
+        <button class="btn btn-ghost btn-icon btn-danger-hover" data-action="delete-dungeon" data-id="${d.id}" title="Delete" aria-label="Delete">${ICON_TRASH}</button>
       </td>`;
     tbody.appendChild(tr);
   }
@@ -667,7 +671,7 @@ function renderTeamCards(playerIds) {
     })
     .join("");
   container.innerHTML = `
-    <label class="output-label">Possible Teams (${stackTeams.length})</label>
+    <label class="output-label">Mögliche Teams (${stackTeams.length})</label>
     <div class="teams-grid">${cards}</div>
   `;
 }
@@ -684,7 +688,7 @@ function renderOverview() {
   const header = `
     <div class="overview-header">
       <span>Name</span>
-      <span>Class</span>
+      <span>Klasse</span>
       <span class="num">iLvl</span>
       <span class="num">Rating</span>
       <span class="center">Key</span>
@@ -779,7 +783,14 @@ function setupGenerator() {
     if (!cb) return;
     cb.addEventListener("change", () => {
       regenerateBoostOutput();
-      pushAppState({ [field]: cb.checked });
+      const patch = { [field]: cb.checked };
+      const slots = $$('#view-generator select[data-slot]').map((s) => s.value);
+      if (slots.some(Boolean)) {
+        const generatedAt = new Date().toISOString();
+        lastAppliedGeneratedAt = generatedAt;
+        patch.generated_at = generatedAt;
+      }
+      pushAppState(patch);
     });
   };
   wireOption("#opt-discord-name", "opt_discord_name");
@@ -821,12 +832,35 @@ function setupGenerator() {
       if (!text) return;
       await navigator.clipboard.writeText(text);
       const status = $(statusSel);
-      status.textContent = "copied";
+      status.textContent = "kopiert";
       setTimeout(() => (status.textContent = ""), 1500);
     });
   };
   wireCopy("#copy-btn", "#generator-output", "#copy-status");
   wireCopy("#copy-discord-btn", "#discord-output", "#copy-discord-status");
+
+  $("#clear-btn").addEventListener("click", () => {
+    $$('#view-generator select[data-slot]').forEach((sel) => (sel.value = ""));
+    clearGeneratorOutput();
+    renderOverview();
+    lastAppliedGeneratedAt = null;
+    pushAppState({
+      slot_0: null,
+      slot_1: null,
+      slot_2: null,
+      slot_3: null,
+      generated_at: null,
+    });
+  });
+}
+
+function clearGeneratorOutput() {
+  const out = $("#generator-output");
+  if (out) out.value = "";
+  const dout = $("#discord-output");
+  if (dout) dout.value = "";
+  const teams = $("#teams");
+  if (teams) teams.innerHTML = "";
 }
 
 function dungeonAlias(name) {
@@ -836,7 +870,7 @@ function dungeonAlias(name) {
 }
 
 function keyDisplayHtml(c) {
-  if (!c.current_key_dungeon) return '<span class="muted">no key</span>';
+  if (!c.current_key_dungeon) return '<span class="muted">kein Key</span>';
   const text = escapeHtml(
     `${dungeonAlias(c.current_key_dungeon)} ${c.current_key_level ?? ""}`.trim()
   );
@@ -1126,16 +1160,20 @@ function applyAppState(row) {
 
   renderOverview();
 
-  if (row.generated_at && row.generated_at !== lastAppliedGeneratedAt) {
-    const slots = $$('#view-generator select[data-slot]').map((s) => s.value);
-    const unique = [...new Set(slots.filter(Boolean))];
-    if (unique.length > 0) {
-      const server = getSelectedServer();
-      $("#generator-output").value = buildBoostStringForServer(server, unique);
-      $("#discord-output").value = buildDiscordString(unique);
-      renderTeamCards(unique);
+  if (row.generated_at !== lastAppliedGeneratedAt) {
+    if (row.generated_at) {
+      const slots = $$('#view-generator select[data-slot]').map((s) => s.value);
+      const unique = [...new Set(slots.filter(Boolean))];
+      if (unique.length > 0) {
+        const server = getSelectedServer();
+        $("#generator-output").value = buildBoostStringForServer(server, unique);
+        $("#discord-output").value = buildDiscordString(unique);
+        renderTeamCards(unique);
+      }
+    } else if (lastAppliedGeneratedAt) {
+      clearGeneratorOutput();
     }
-    lastAppliedGeneratedAt = row.generated_at;
+    lastAppliedGeneratedAt = row.generated_at || null;
   }
 }
 
