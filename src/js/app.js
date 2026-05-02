@@ -8,6 +8,13 @@ const state = {
   dungeons: [],
 };
 
+let liveChannel = null;
+
+const clientId = crypto.randomUUID();
+let lastAppliedGeneratedAt = null;
+let pushAppStateTimer = null;
+let pendingAppStatePatch = {};
+
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -636,11 +643,18 @@ function renderTeamCards(playerIds) {
             )}</span>`
         )
         .join(", ");
-      const rows = team
-        .map((c) => {
+      const teamRoles = findTeamRoleAssignment(team) || [];
+      const ROLE_ORDER = { Tank: 0, Heal: 1, Dps: 2 };
+      const sortedMembers = team
+        .map((c, i) => ({ c, role: teamRoles[i] }))
+        .sort((a, b) => (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99));
+      const rows = sortedMembers
+        .map(({ c, role }) => {
           const cls = classByName(c.class);
           const color = cls ? cls.color : "inherit";
+          const abbr = role === "Tank" ? "T" : role === "Heal" ? "H" : role === "Dps" ? "D" : "";
           return `<div class="team-card-row">
+            <span class="role-tag">${abbr}</span>
             <span style="color:${color}">${escapeHtml(c.name)}</span>
             <span>${keyDisplayHtml(c)}</span>
           </div>`;
@@ -729,10 +743,47 @@ function renderGeneratorDropdowns() {
   });
 }
 
+function getSelectedServer() {
+  const checked = $('input[name="server"]:checked');
+  return checked ? checked.value : "sylvanas";
+}
+
+function setSelectedServer(server) {
+  const rb = $(`input[name="server"][value="${server}"]`);
+  if (rb) rb.checked = true;
+}
+
+function buildBoostStringForServer(server, playerIds) {
+  if (server === "garona") return "Garona coming soon";
+  return buildBoostString(playerIds);
+}
+
 function setupGenerator() {
   $$('#view-generator select[data-slot]').forEach((sel) =>
-    sel.addEventListener("change", renderOverview)
+    sel.addEventListener("change", () => {
+      renderOverview();
+      const idx = Number(sel.dataset.slot);
+      pushAppState({ [`slot_${idx}`]: sel.value || null });
+    })
   );
+
+  $$('input[name="server"]').forEach((rb) =>
+    rb.addEventListener("change", () => {
+      if (!rb.checked) return;
+      pushAppState({ server: rb.value });
+    })
+  );
+
+  const wireOption = (sel, field) => {
+    const cb = $(sel);
+    if (!cb) return;
+    cb.addEventListener("change", () => {
+      regenerateBoostOutput();
+      pushAppState({ [field]: cb.checked });
+    });
+  };
+  wireOption("#opt-discord-name", "opt_discord_name");
+  wireOption("#opt-code-block", "opt_code_block");
 
   $("#view-generator").addEventListener("click", (e) => {
     const el = e.target.closest(".editable-inline");
@@ -745,14 +796,24 @@ function setupGenerator() {
   });
 
   $("#generate-btn").addEventListener("click", () => {
-    const ids = $$('#view-generator select[data-slot]')
-      .map((s) => s.value)
-      .filter(Boolean);
-    const unique = [...new Set(ids)];
-    $("#generator-output").value = buildBoostString(unique);
+    const slots = $$('#view-generator select[data-slot]').map((s) => s.value);
+    const unique = [...new Set(slots.filter(Boolean))];
+    const server = getSelectedServer();
+    $("#generator-output").value = buildBoostStringForServer(server, unique);
     $("#discord-output").value = buildDiscordString(unique);
     renderTeamCards(unique);
+    const generatedAt = new Date().toISOString();
+    lastAppliedGeneratedAt = generatedAt;
+    pushAppState({ generated_at: generatedAt });
   });
+
+  function regenerateBoostOutput() {
+    const slots = $$('#view-generator select[data-slot]').map((s) => s.value);
+    const unique = [...new Set(slots.filter(Boolean))];
+    if (unique.length === 0) return;
+    const server = getSelectedServer();
+    $("#generator-output").value = buildBoostStringForServer(server, unique);
+  }
 
   const wireCopy = (btnSel, outputSel, statusSel) => {
     $(btnSel).addEventListener("click", async () => {
@@ -785,7 +846,19 @@ function keyDisplayHtml(c) {
 
 const ROLE_EMOJI = { Tank: ":tank:", Heal: ":Healer:", Dps: ":DPS:" };
 
-function formatCharacterParts(c) {
+function formatCharacterPartsText(c) {
+  const roles = [c.main_role, c.off_role].filter(Boolean).map((r) => r.toUpperCase()).join(" ");
+  const classArmor = `${c.class ?? ""} (${c.armor_type ?? ""})`;
+  const rating = c.rating != null ? `RIO ${c.rating}` : "";
+  const ilvl = c.item_level != null ? `iLvl ${c.item_level}` : "";
+  const key =
+    c.key_active !== false && c.current_key_dungeon
+      ? `${dungeonAlias(c.current_key_dungeon)} +${c.current_key_level ?? ""}`
+      : "";
+  return [roles, classArmor, rating, ilvl, key];
+}
+
+function formatCharacterPartsEmoji(c) {
   const roles = [c.main_role, c.off_role]
     .filter(Boolean)
     .map((r) => ROLE_EMOJI[r] || r)
@@ -809,8 +882,12 @@ function getCharRoles(c) {
 }
 
 function canFormTeam(team) {
+  return findTeamRoleAssignment(team) !== null;
+}
+
+function findTeamRoleAssignment(team) {
   const sets = team.map(getCharRoles);
-  if (sets.some((s) => s.length === 0)) return false;
+  if (sets.some((s) => s.length === 0)) return null;
   for (const r0 of sets[0])
     for (const r1 of sets[1])
       for (const r2 of sets[2])
@@ -822,9 +899,9 @@ function canFormTeam(team) {
             else if (r === "Heal") h++;
             else if (r === "Dps") d++;
           }
-          if (t === 1 && h === 1 && d === 2) return true;
+          if (t === 1 && h === 1 && d === 2) return arr;
         }
-  return false;
+  return null;
 }
 
 function teamArmorCounts(team) {
@@ -888,13 +965,17 @@ function computeValidTeams(playerIds) {
 
 function buildTeamString(playerIds) {
   const { pools, teams: validTeams } = computeValidTeams(playerIds);
-  const lines = ["Team Take", ""];
+  const showDiscordName = $("#opt-discord-name")?.checked ?? true;
+  const lines = ["**TEAM TAKE**", ""];
 
   const poolKeys = poolKeyCounts(pools.flat());
   const noStackList = [...poolKeys.values()]
     .map((e) => formatKeyCount(e.label, e.count))
     .join(" | ");
-  lines.push(`No-Stack Keys - ${noStackList || "none"}`);
+  lines.push("*No-Stack Keys*");
+  lines.push("```");
+  lines.push(noStackList || "none");
+  lines.push("```");
 
   const stacks = {};
   for (const team of validTeams) {
@@ -913,15 +994,31 @@ function buildTeamString(playerIds) {
 
   const stackEntries = Object.entries(stacks);
   if (stackEntries.length > 0) {
-    lines.push("");
-    lines.push("Possible Stacks:");
-    for (const [armor, data] of stackEntries) {
+    const stackRows = stackEntries.map(([armor, data]) => {
       const counts = poolKeyCounts([...data.chars.values()]);
       const list = [...counts.values()]
+        .sort((a, b) => a.label.localeCompare(b.label))
         .map((e) => formatKeyCount(e.label, e.count))
         .join(" | ");
-      lines.push(`${armor} x${data.max} - ${list || "none"}`);
+      return { first: `${armor} x${data.max}`, list: list || "none" };
+    });
+    const w0 = Math.max(...stackRows.map((r) => r.first.length));
+    lines.push("*Possible Stacks*");
+    lines.push("```");
+    for (const r of stackRows) {
+      lines.push(`${r.first.padEnd(w0)} - ${r.list}`);
     }
+    lines.push("```");
+  }
+
+  lines.push("*trade / lower / reroll all*");
+  if (showDiscordName) {
+    const mentions = playerIds
+      .map((pid) => byId(state.players, pid))
+      .filter(Boolean)
+      .map((p) => `@${p.discord_name || p.name}`)
+      .join(" ");
+    if (mentions) lines.push(mentions);
   }
   return lines.join("\n");
 }
@@ -932,14 +1029,18 @@ function buildBoostString(playerIds) {
     return buildTeamString(playerIds);
   }
 
-  const headers = { 1: "SOLO", 2: "DUO", 3: "TRIO" };
+  const useCodeBlock = $("#opt-code-block")?.checked ?? true;
+  const showDiscordName = $("#opt-discord-name")?.checked ?? true;
+  const formatter = useCodeBlock ? formatCharacterPartsText : formatCharacterPartsEmoji;
+
+  const headers = { 1: "**SOLO SIGN**", 2: "**DUO SIGN**", 3: "**TRIO SIGN**" };
   const playerCharParts = playerIds.map((pid) =>
     charsForPlayer(pid)
       .filter((c) => c.is_active)
-      .map(formatCharacterParts)
+      .map(formatter)
   );
   const allParts = playerCharParts.flat();
-  const colCount = 4;
+  const colCount = allParts[0]?.length ?? 0;
   const widths = new Array(colCount).fill(0);
   for (const parts of allParts) {
     parts.forEach((p, i) => {
@@ -949,18 +1050,31 @@ function buildBoostString(playerIds) {
   const activeCols = widths
     .map((w, i) => (w > 0 ? i : -1))
     .filter((i) => i >= 0);
+  const lastCol = activeCols[activeCols.length - 1];
 
-  const lines = [headers[playerIds.length]];
+  const lines = [headers[playerIds.length], ""];
+  const includeDiscordHeader = showDiscordName && (playerIds.length === 2 || playerIds.length === 3);
   playerCharParts.forEach((charParts, idx) => {
-    if (idx > 0) lines.push("--------");
+    if (!useCodeBlock && idx > 0) lines.push("");
+    if (includeDiscordHeader) {
+      const player = byId(state.players, playerIds[idx]);
+      if (player) lines.push(`@${player.discord_name || player.name}`);
+    }
+    if (charParts.length === 0) return;
+    if (useCodeBlock) lines.push("```");
     for (const parts of charParts) {
       const segments = activeCols.map((i) => {
         const value = parts[i] || "";
-        return i === 0 ? value : value.padEnd(widths[i]);
+        if (i === lastCol) return value;
+        if (i === 0 && !useCodeBlock) return value;
+        return value.padEnd(widths[i]);
       });
       lines.push(segments.join(" | "));
     }
+    if (useCodeBlock) lines.push("```");
   });
+  if (!useCodeBlock) lines.push("");
+  lines.push("*trade / lower / reroll all*");
   return lines.join("\n");
 }
 
@@ -968,8 +1082,94 @@ function buildDiscordString(playerIds) {
   return playerIds
     .map((pid) => byId(state.players, pid))
     .filter(Boolean)
-    .map((p) => p.discord_name || p.name)
+    .map((p) => `@${p.discord_name || p.name}`)
     .join(" ");
+}
+
+// ---------- Live sync ----------
+async function handleRemoteDbChange(table) {
+  try {
+    if (table === "players") state.players = await db.listPlayers();
+    else if (table === "characters") state.characters = await db.listCharacters();
+    else if (table === "seasons") state.seasons = await db.listSeasons();
+    else if (table === "dungeons") state.dungeons = await db.listDungeons();
+    else return;
+  } catch (err) {
+    console.error(err);
+    return;
+  }
+  renderAll();
+  refreshTeamCardsIfShown();
+}
+
+function refreshTeamCardsIfShown() {
+  const teamsContainer = $("#teams");
+  if (!teamsContainer || teamsContainer.children.length === 0) return;
+  const ids = $$('#view-generator select[data-slot]')
+    .map((s) => s.value)
+    .filter(Boolean);
+  renderTeamCards([...new Set(ids)]);
+}
+
+function applyAppState(row) {
+  if (!row) return;
+  $$('#view-generator select[data-slot]').forEach((sel) => {
+    const idx = Number(sel.dataset.slot);
+    const val = row[`slot_${idx}`] || "";
+    if (sel.value !== val) sel.value = val;
+  });
+  setSelectedServer(row.server || "sylvanas");
+  const cbName = $("#opt-discord-name");
+  if (cbName) cbName.checked = row.opt_discord_name !== false;
+  const cbCode = $("#opt-code-block");
+  if (cbCode) cbCode.checked = row.opt_code_block !== false;
+
+  renderOverview();
+
+  if (row.generated_at && row.generated_at !== lastAppliedGeneratedAt) {
+    const slots = $$('#view-generator select[data-slot]').map((s) => s.value);
+    const unique = [...new Set(slots.filter(Boolean))];
+    if (unique.length > 0) {
+      const server = getSelectedServer();
+      $("#generator-output").value = buildBoostStringForServer(server, unique);
+      $("#discord-output").value = buildDiscordString(unique);
+      renderTeamCards(unique);
+    }
+    lastAppliedGeneratedAt = row.generated_at;
+  }
+}
+
+function handleRemoteAppStateChange(payload) {
+  const row = payload?.new;
+  if (!row) return;
+  if (row.client_id === clientId) {
+    if (row.generated_at) lastAppliedGeneratedAt = row.generated_at;
+    return;
+  }
+  applyAppState(row);
+}
+
+function pushAppState(patch) {
+  Object.assign(pendingAppStatePatch, patch, { client_id: clientId });
+  clearTimeout(pushAppStateTimer);
+  pushAppStateTimer = setTimeout(async () => {
+    const next = pendingAppStatePatch;
+    pendingAppStatePatch = {};
+    pushAppStateTimer = null;
+    try { await db.updateAppState(next); } catch (err) { console.error(err); }
+  }, 100);
+}
+
+async function handleReconnect() {
+  try {
+    await loadAll();
+    renderAll();
+    refreshTeamCardsIfShown();
+    const row = await db.getAppState();
+    applyAppState(row);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 // ---------- Utils ----------
@@ -1000,7 +1200,19 @@ async function main() {
     alert(
       "Failed to load data from Supabase. Check that src/js/config.js has the correct URL and publishable key."
     );
+    return;
   }
+  try {
+    const row = await db.getAppState();
+    applyAppState(row);
+  } catch (err) {
+    console.error(err);
+  }
+  liveChannel = db.createLiveChannel({
+    onDbChange: handleRemoteDbChange,
+    onAppStateChange: handleRemoteAppStateChange,
+    onReconnect: handleReconnect,
+  });
 }
 
 main();

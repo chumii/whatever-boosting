@@ -73,7 +73,11 @@ body {
   font-size: 13px;
 }
 .nav-link:hover { color: var(--text); background: var(--surface-2); }
-.nav-link.active { color: var(--text); background: var(--surface-2); }
+.nav-link.active {
+  color: var(--text);
+  background: var(--surface-2);
+  box-shadow: inset 2px 0 0 #4a4a4a;
+}
 
 main {
   padding: 24px 28px;
@@ -264,6 +268,54 @@ td.num .cell-editor { text-align: right; font-family: var(--font-mono); }
   justify-content: center;
   margin: 16px 0 20px;
 }
+
+.sidebar-section { display: flex; flex-direction: column; gap: 4px; }
+.sidebar-header {
+  padding: 4px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.server-options { display: flex; flex-direction: column; gap: 2px; }
+.server-option {
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.server-option:hover { color: var(--text); background: var(--surface-2); }
+.server-option:has(input:checked) {
+  color: var(--text);
+  background: rgba(34, 197, 94, 0.12);
+  box-shadow: inset 2px 0 0 var(--green);
+}
+.server-option input { display: none; }
+.sidebar-checkboxes { display: flex; flex-direction: column; gap: 2px; }
+.sidebar-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sidebar-checkbox:hover { color: var(--text); background: var(--surface-2); }
+.sidebar-checkbox:has(input:checked) { color: rgba(34, 197, 94, 0.7); }
+.sidebar-checkbox input {
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+}
 .slot label {
   display: block;
   font-size: 12px;
@@ -368,9 +420,16 @@ td.num .cell-editor { text-align: right; font-family: var(--font-mono); }
 }
 .team-card-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 12px 1fr 1fr;
   gap: 8px;
   padding: 2px 0;
+  align-items: center;
+}
+.team-card-row > span:last-child { text-align: right; }
+.role-tag {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  text-align: center;
 }
 
 .dialog {

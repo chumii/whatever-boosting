@@ -67,3 +67,54 @@ export const updateDungeon = (id, row) =>
 
 export const deleteDungeon = (id) =>
   supabase.from("dungeons").delete().eq("id", id).then(unwrap);
+
+// App state (shared generator UI)
+const APP_STATE_ID = "generator";
+
+export const getAppState = () =>
+  supabase
+    .from("app_state")
+    .select("*")
+    .eq("id", APP_STATE_ID)
+    .maybeSingle()
+    .then(unwrap);
+
+export const updateAppState = (patch) =>
+  supabase
+    .from("app_state")
+    .update(patch)
+    .eq("id", APP_STATE_ID)
+    .select()
+    .single()
+    .then(unwrap);
+
+// Realtime
+const SYNCED_TABLES = ["players", "characters", "seasons", "dungeons"];
+
+export function createLiveChannel({ onDbChange, onAppStateChange, onReconnect } = {}) {
+  const channel = supabase.channel("whatever-boosting-live");
+  for (const table of SYNCED_TABLES) {
+    channel.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table },
+      (payload) => {
+        try { onDbChange?.(table, payload); } catch (e) { console.error(e); }
+      }
+    );
+  }
+  channel.on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "app_state" },
+    (payload) => {
+      try { onAppStateChange?.(payload); } catch (e) { console.error(e); }
+    }
+  );
+  let wasSubscribed = false;
+  channel.subscribe((status) => {
+    if (status === "SUBSCRIBED") {
+      if (wasSubscribed) onReconnect?.();
+      wasSubscribed = true;
+    }
+  });
+  return channel;
+}
