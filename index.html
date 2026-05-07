@@ -118,10 +118,16 @@
           <div class="card">
             <div class="card-header">
               <h2>Characters</h2>
-              <button id="new-character-btn" class="btn btn-primary btn-with-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                <span>Charakter</span>
-              </button>
+              <div style="display:flex;gap:6px">
+                <button id="import-characters-btn" class="btn btn-with-icon" title="Import from WoW addon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Import</span>
+                </button>
+                <button id="new-character-btn" class="btn btn-primary btn-with-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                  <span>Charakter</span>
+                </button>
+              </div>
             </div>
             <table id="characters-table" class="data-table">
               <thead>
@@ -248,6 +254,49 @@
           <button type="submit" class="btn-primary">Save</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="import-characters-dialog" class="dialog import-dialog">
+      <div class="import-body">
+        <h2>Import from Addon</h2>
+        <label>Player
+          <select id="import-player-select"></select>
+        </label>
+        <div>
+          <label>Export string
+            <textarea id="import-paste-input" rows="3" placeholder="WB1|…"></textarea>
+          </label>
+          <div class="import-status-row">
+            <span id="import-decode-status" class="import-status"></span>
+            <button type="button" id="import-decode-btn" class="btn" style="margin-left:auto;flex-shrink:0">Decode</button>
+          </div>
+        </div>
+        <div id="import-preview" class="hidden">
+          <div class="import-preview-scroll">
+            <table id="import-preview-table" class="data-table">
+              <thead>
+                <tr>
+                  <th class="center"><input type="checkbox" id="import-check-all" checked></th>
+                  <th>Name</th>
+                  <th>Class</th>
+                  <th>Main</th>
+                  <th>Off</th>
+                  <th>Dungeon</th>
+                  <th class="num">Key</th>
+                  <th class="num">Rating</th>
+                  <th class="num">iLvl</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" data-close>Cancel</button>
+          <button type="button" id="import-confirm-btn" class="btn-primary" disabled>Import</button>
+        </div>
+      </div>
     </dialog>
 
     <script type="module" src="src/js/app.js"></script>

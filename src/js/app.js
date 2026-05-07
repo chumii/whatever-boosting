@@ -1174,6 +1174,216 @@ function buildDiscordString(playerIds) {
     .join(" ");
 }
 
+// ---------- Addon import ----------
+function decodeAddonExport(raw) {
+  const str = raw.trim().replace(/\s/g, "");
+  if (!str.startsWith("WB1|")) throw new Error("Missing WB1| prefix");
+  let json;
+  try {
+    const binary = atob(str.slice(4));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    json = new TextDecoder("utf-8").decode(bytes);
+  } catch { throw new Error("Invalid base64"); }
+  let payload;
+  try { payload = JSON.parse(json); } catch { throw new Error("Invalid JSON inside export string"); }
+  if (payload.v !== 1) throw new Error(`Unsupported version: ${payload.v}`);
+  if (!Array.isArray(payload.characters)) throw new Error("Missing characters array");
+  return payload;
+}
+
+function classifyImportChars(chars, playerId) {
+  return chars.map((ic) => {
+    const cls = classByName(ic.class);
+    if (!cls) return { ...ic, status: "invalid" };
+
+    const nameLower = (ic.name || "").toLowerCase();
+    const existing = state.characters.find(
+      (c) => c.player_id === playerId && c.name.toLowerCase() === nameLower
+    );
+
+    const importRow = {
+      player_id: playerId,
+      name: ic.name,
+      class: ic.class,
+      armor_type: cls.armor_type,
+      main_role: ic.main_role || null,
+      off_role: ic.off_role || null,
+      current_key_dungeon: ic.current_key_dungeon || null,
+      current_key_level: ic.current_key_level ?? null,
+      rating: ic.rating ?? null,
+      item_level: ic.item_level ?? null,
+    };
+
+    if (existing) {
+      const changed = Object.entries(importRow).some(([k, v]) => {
+        const ev = existing[k] ?? null;
+        const iv = v ?? null;
+        if (typeof ev === "number" && typeof iv === "number") return Math.abs(ev - iv) > 0.001;
+        return ev !== iv;
+      });
+      return { ...ic, status: changed ? "update" : "no-change", existingId: existing.id, importRow };
+    }
+    return { ...ic, status: "insert", importRow };
+  });
+}
+
+async function executeImport(classified) {
+  const toWrite = classified.filter((c) => c.status === "insert" || c.status === "update");
+  for (const c of toWrite) {
+    if (c.status === "insert") await db.createCharacter(c.importRow);
+    else await db.updateCharacter(c.existingId, c.importRow);
+  }
+  await loadAll();
+  renderAll();
+}
+
+function setupImport() {
+  const dlg          = $("#import-characters-dialog");
+  const playerSel    = $("#import-player-select");
+  const pasteInput   = $("#import-paste-input");
+  const decodeBtn    = $("#import-decode-btn");
+  const decodeStatus = $("#import-decode-status");
+  const preview      = $("#import-preview");
+  const previewBody  = $("#import-preview-table tbody");
+  const checkAll     = $("#import-check-all");
+  const confirmBtn   = $("#import-confirm-btn");
+
+  let classified = null;
+
+  function updateConfirmBtn() {
+    const anyCheckedWritable = $$('#import-preview-table tbody input[type="checkbox"]:not(:disabled):checked')
+      .some((cb) => {
+        const item = classified?.[Number(cb.dataset.idx)];
+        return item && (item.status === "insert" || item.status === "update");
+      });
+    confirmBtn.disabled = !anyCheckedWritable;
+  }
+
+  function triggerDecode() {
+    const playerId = playerSel.value;
+    if (!playerId) {
+      decodeStatus.className = "import-status error";
+      decodeStatus.textContent = "Select a player first";
+      preview.classList.add("hidden");
+      classified = null;
+      confirmBtn.disabled = true;
+      return;
+    }
+    let payload;
+    try {
+      payload = decodeAddonExport(pasteInput.value);
+    } catch (err) {
+      decodeStatus.className = "import-status error";
+      decodeStatus.textContent = err.message;
+      preview.classList.add("hidden");
+      classified = null;
+      confirmBtn.disabled = true;
+      return;
+    }
+    classified = classifyImportChars(payload.characters, playerId);
+    renderImportPreview(classified);
+    preview.classList.remove("hidden");
+    const inserts = classified.filter((c) => c.status === "insert").length;
+    const updates = classified.filter((c) => c.status === "update").length;
+    const invalids = classified.filter((c) => c.status === "invalid").length;
+    const parts = [];
+    if (inserts) parts.push(`${inserts} new`);
+    if (updates) parts.push(`${updates} update`);
+    if (invalids) parts.push(`${invalids} invalid`);
+    decodeStatus.className = "import-status";
+    decodeStatus.textContent = parts.join(", ") || "no changes";
+    updateConfirmBtn();
+  }
+
+  $("#import-characters-btn").addEventListener("click", () => {
+    playerSel.innerHTML =
+      `<option value="">— select player —</option>` +
+      state.players.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+    pasteInput.value = "";
+    decodeStatus.className = "import-status";
+    decodeStatus.textContent = "";
+    preview.classList.add("hidden");
+    previewBody.innerHTML = "";
+    confirmBtn.disabled = true;
+    classified = null;
+    dlg.showModal();
+  });
+
+  pasteInput.addEventListener("paste", () => requestAnimationFrame(triggerDecode));
+  decodeBtn.addEventListener("click", triggerDecode);
+
+  checkAll.addEventListener("change", () => {
+    $$('#import-preview-table tbody input[type="checkbox"]:not(:disabled)').forEach((cb) => {
+      cb.checked = checkAll.checked;
+    });
+    updateConfirmBtn();
+  });
+
+  previewBody.addEventListener("change", (e) => {
+    if (!e.target.matches('input[type="checkbox"]')) return;
+    const allCbs = $$('#import-preview-table tbody input[type="checkbox"]:not(:disabled)');
+    checkAll.checked = allCbs.length > 0 && allCbs.every((cb) => cb.checked);
+    updateConfirmBtn();
+  });
+
+  confirmBtn.addEventListener("click", async () => {
+    if (!classified) return;
+    const checkedIdxs = new Set(
+      $$('#import-preview-table tbody input[type="checkbox"]:checked:not(:disabled)')
+        .map((cb) => Number(cb.dataset.idx))
+    );
+    const toImport = classified.filter((_, idx) => checkedIdxs.has(idx));
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Importing…";
+    try {
+      await executeImport(toImport);
+      dlg.close();
+    } catch (err) {
+      console.error(err);
+      alert("Import failed: " + err.message);
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Import";
+    }
+  });
+
+  function renderImportPreview(items) {
+    previewBody.innerHTML = "";
+    for (const [idx, item] of items.entries()) {
+      const tr = document.createElement("tr");
+      const actionClass = {
+        insert: "import-action-insert",
+        update: "import-action-update",
+        "no-change": "import-action-nochange",
+        invalid: "import-action-invalid",
+      }[item.status] || "import-action-nochange";
+      const actionLabel = {
+        insert: "Insert",
+        update: "Update",
+        "no-change": "No change",
+        invalid: "Invalid class",
+      }[item.status] || item.status;
+      const cbDisabled = item.status === "invalid" ? " disabled" : "";
+      const cbChecked  = (item.status === "insert" || item.status === "update") ? " checked" : "";
+      tr.innerHTML = `
+        <td class="center"><input type="checkbox" data-idx="${idx}"${cbChecked}${cbDisabled}></td>
+        <td>${escapeHtml(item.name || "")}</td>
+        <td>${escapeHtml(item.class || "")}</td>
+        <td>${escapeHtml(item.main_role || "")}</td>
+        <td>${escapeHtml(item.off_role || "")}</td>
+        <td>${escapeHtml(item.current_key_dungeon || "")}</td>
+        <td class="num">${item.current_key_level ?? ""}</td>
+        <td class="num">${item.rating ?? ""}</td>
+        <td class="num">${item.item_level ?? ""}</td>
+        <td><span class="${actionClass}">${actionLabel}</span></td>`;
+      previewBody.appendChild(tr);
+    }
+    const allCbs = $$('#import-preview-table tbody input[type="checkbox"]:not(:disabled)');
+    checkAll.checked = allCbs.length > 0 && allCbs.every((cb) => cb.checked);
+  }
+}
+
 // ---------- Live sync ----------
 async function handleRemoteDbChange(table) {
   try {
@@ -1284,6 +1494,7 @@ async function main() {
   setupSeasonCrud();
   setupDungeonCrud();
   setupGenerator();
+  setupImport();
   try {
     await loadAll();
     renderAll();

@@ -1,0 +1,25 @@
+WB = WB or {}
+
+-- MapChallengeModeID → English dungeon name.
+-- Names MUST match your webapp's dungeons table exactly (case-sensitive).
+-- Update this table when a new season begins and add the new season's entries to your webapp too.
+WB.DUNGEONS = {
+    -- The War Within — Season 1
+    [503] = "Ara-Kara, City of Echoes",
+    [502] = "City of Threads",
+    [164] = "Grim Batol",
+    [375] = "Mists of Tirna Scithe",
+    [505] = "The Dawnbreaker",
+    [376] = "The Necrotic Wake",
+    [500] = "The Stonevault",
+    [353] = "Siege of Boralus",
+    -- The War Within — Season 2
+    [1184] = "Darkflame Cleft",
+    [1187] = "Priory of the Sacred Flame",
+    [1188] = "The Rookery",
+    [1210] = "Operation: Floodgate",
+    [1194] = "Cinderbrew Meadery",
+    [369]  = "Mechagon Workshop",
+    [381]  = "Theater of Pain",
+    [1201] = "Cauldron of Carnage",
+}
