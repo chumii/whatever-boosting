@@ -12,6 +12,7 @@ let liveChannel = null;
 
 const charSort = { field: "player", dir: "asc" };
 const CHAR_NUMERIC_FIELDS = new Set(["current_key_level", "rating", "item_level"]);
+const dungeonSort = { field: "name", dir: "asc" };
 
 const clientId = crypto.randomUUID();
 let lastAppliedGeneratedAt = null;
@@ -362,10 +363,26 @@ function renderSeasonsTable() {
   }
 }
 
+function updateDungeonSortIndicators() {
+  $$("#dungeons-table thead th[data-sort]").forEach((th) => {
+    const active = th.dataset.sort === dungeonSort.field;
+    th.classList.toggle("sort-asc", active && dungeonSort.dir === "asc");
+    th.classList.toggle("sort-desc", active && dungeonSort.dir === "desc");
+  });
+}
+
 function renderDungeonsTable() {
   const tbody = $("#dungeons-table tbody");
   tbody.innerHTML = "";
-  for (const d of state.dungeons) {
+  updateDungeonSortIndicators();
+  const sorted = [...state.dungeons].sort((a, b) => {
+    const { field, dir } = dungeonSort;
+    const av = field === "season" ? (byId(state.seasons, a.season_id)?.name || "") : (a[field] || "");
+    const bv = field === "season" ? (byId(state.seasons, b.season_id)?.name || "") : (b[field] || "");
+    const cmp = String(av).localeCompare(String(bv));
+    return dir === "desc" ? -cmp : cmp;
+  });
+  for (const d of sorted) {
     const season = byId(state.seasons, d.season_id);
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -632,6 +649,19 @@ function setupDungeonCrud() {
   $("#new-dungeon-btn").addEventListener("click", () => {
     populateDungeonDialogOptions();
     openDialog("dungeon-dialog", "New dungeon");
+  });
+
+  $("#dungeons-table thead").addEventListener("click", (e) => {
+    const th = e.target.closest("th[data-sort]");
+    if (!th) return;
+    const field = th.dataset.sort;
+    if (dungeonSort.field === field) {
+      dungeonSort.dir = dungeonSort.dir === "asc" ? "desc" : "asc";
+    } else {
+      dungeonSort.field = field;
+      dungeonSort.dir = "asc";
+    }
+    renderDungeonsTable();
   });
 
   $("#dungeons-table").addEventListener("click", async (e) => {
