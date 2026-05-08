@@ -1,3 +1,4 @@
 .env
 .env.local
 .DS_Store
+src/js/config.js
