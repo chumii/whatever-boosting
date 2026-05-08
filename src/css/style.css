@@ -218,6 +218,13 @@ option {
   background: var(--surface);
   color: var(--text);
 }
+.filter-select {
+  width: auto;
+  height: 28px;
+  padding: 0 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
 
 .data-table {
   width: 100%;
@@ -347,6 +354,19 @@ td.num .cell-editor { text-align: right; font-family: var(--font-mono); }
   margin: 0;
   flex-shrink: 0;
 }
+.sidebar-download {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.sidebar-download:hover { color: var(--text); background: var(--surface-2); }
+.sidebar-download svg { flex-shrink: 0; }
 .slot label {
   display: block;
   font-size: 12px;

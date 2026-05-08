@@ -1,0 +1,31 @@
+name: Release addon
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'addon/WhateverBoosting/**'
+      - '.github/workflows/release-addon.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build zip
+        working-directory: addon
+        run: zip -r ../WhateverBoosting.zip WhateverBoosting
+
+      - name: Publish rolling 'latest' release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create latest WhateverBoosting.zip \
+            --title "Latest addon build" \
+            --notes "Built from ${{ github.sha }} on $(date -u +%Y-%m-%d)" \
+            --latest

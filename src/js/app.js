@@ -68,8 +68,23 @@ async function loadAll() {
   state.dungeons = dungeons;
 }
 
+function renderCharactersFilter() {
+  const sel = $("#characters-player-filter");
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML =
+    `<option value="">All players</option>` +
+    state.players
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`)
+      .join("");
+  if ([...sel.options].some((o) => o.value === current)) sel.value = current;
+}
+
 function renderAll() {
   renderPlayersTable();
+  renderCharactersFilter();
   renderCharactersTable();
   renderSeasonsTable();
   renderDungeonsTable();
@@ -173,10 +188,13 @@ function updateCharSortIndicators() {
 }
 
 function renderCharactersTable() {
+  const filterPlayerId = $("#characters-player-filter")?.value || "";
   const tbody = $("#characters-table tbody");
   tbody.innerHTML = "";
   updateCharSortIndicators();
-  const sorted = [...state.characters].sort(compareCharacters);
+  const sorted = [...state.characters]
+    .filter((c) => !filterPlayerId || c.player_id === filterPlayerId)
+    .sort(compareCharacters);
   for (const c of sorted) {
     const player = byId(state.players, c.player_id);
     const cls = classByName(c.class);
@@ -495,6 +513,8 @@ async function handleCharCheckboxToggle(cb) {
 }
 
 function setupCharacterCrud() {
+  $("#characters-player-filter").addEventListener("change", renderCharactersTable);
+
   $('#character-dialog [name="class"]').addEventListener("change", syncDialogArmorFromClass);
 
   $("#new-character-btn").addEventListener("click", () => {

@@ -3,6 +3,8 @@ WB = WB or {}
 local function initDB()
     if not WhateverBoostingDB then WhateverBoostingDB = {} end
     if not WhateverBoostingDB.characters then WhateverBoostingDB.characters = {} end
+    if not WhateverBoostingDB.tradeCheckLevel then WhateverBoostingDB.tradeCheckLevel = 266 end
+    if WB.TradeCheck then WB.TradeCheck.TRADE_LEVEL = WhateverBoostingDB.tradeCheckLevel end
 end
 
 local function getSpecRole()
@@ -21,8 +23,6 @@ local function doCollect()
 
     local _, classToken = UnitClass("player")
     local className = WB.CLASS_NAMES[classToken] or classToken
-
-    local mainRole = getSpecRole()
 
     local _, equippedIlvl = GetAverageItemLevel()
     if equippedIlvl then
@@ -44,13 +44,16 @@ local function doCollect()
         end
     end
 
-    local existing = WhateverBoostingDB.characters[key] or {}
+    local existing  = WhateverBoostingDB.characters[key] or {}
+    local mainRole  = existing.main_role_override and existing.main_role or getSpecRole()
 
     -- Only overwrite key data if we actually got something this pass.
     -- This prevents a blank retry from erasing a previously stored key.
     local keyDungeon = dungeonName or existing.current_key_dungeon
     local keyMapId   = mapId       or existing.current_key_map_id
     local keyLvl     = keyLevel    or existing.current_key_level
+
+    local canTradeAll = WB.TradeCheck and WB.TradeCheck.CanTradeAll(WB.TradeCheck.TRADE_LEVEL) or nil
 
     WhateverBoostingDB.characters[key] = {
         name                = name,
@@ -64,7 +67,9 @@ local function doCollect()
         rating              = rating,
         item_level          = equippedIlvl,
         tracked             = (existing.tracked == nil) and true or existing.tracked,
+        main_role_override  = existing.main_role_override,
         last_updated        = time(),
+        can_trade_all       = canTradeAll,
     }
 
     if WB.RefreshUI then WB.RefreshUI() end
@@ -115,9 +120,18 @@ end)
 
 SLASH_WB1 = "/wb"
 SLASH_WB2 = "/whatevboosting"
-SlashCmdList["WB"] = function()
+SlashCmdList["WB"] = function(msg)
     initDB()
-    WB.ToggleUI()
+    local cmd = msg and msg:match("^%s*(%S+)") or ""
+    if cmd == "trade" then
+        if WB.KeystoneTrader then WB.KeystoneTrader.Toggle() end
+    elseif cmd == "tc" then
+        if WB.TradeCheck then WB.TradeCheck.Check(msg:match("^%s*%S+%s*(.*)$")) end
+    elseif cmd == "setup" then
+        if WB.ToggleSetup then WB.ToggleSetup() end
+    else
+        WB.ToggleUI()
+    end
 end
 
 WB.CollectCurrentChar = doCollect

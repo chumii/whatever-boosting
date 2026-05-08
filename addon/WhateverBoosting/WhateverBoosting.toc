@@ -12,3 +12,6 @@ Dungeons.lua
 Core.lua
 Export.lua
 UI.lua
+KeystoneTrader.lua
+TradeCheck.lua
+Setup.lua
