@@ -367,6 +367,7 @@ td.num .cell-editor { text-align: right; font-family: var(--font-mono); }
 }
 .sidebar-download:hover { color: var(--text); background: var(--surface-2); }
 .sidebar-download svg { flex-shrink: 0; }
+.sidebar-download.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 .slot label {
   display: block;
   font-size: 12px;
