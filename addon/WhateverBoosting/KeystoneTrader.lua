@@ -207,6 +207,7 @@ local function refresh()
         end
         updateDisplay()
         mainFrame:Show()
+        syncBinding()
     else
         hideAll()
     end
@@ -250,6 +251,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
                 hideAll()
             else
                 if targetLevel == 0 or targetLevel > keyLevel then targetLevel = keyLevel end
+                if built and iconArea then onHover = iconArea:IsMouseOver() end
                 syncBinding()
                 updateDisplay()
             end
