@@ -175,8 +175,10 @@ local function buildUI()
         GameTooltip:Show()
     end)
     iconArea:SetScript("OnLeave", function()
-        onHover = false
-        syncBinding()
+        if not locked then
+            onHover = false
+            syncBinding()
+        end
         GameTooltip:Hide()
     end)
 
