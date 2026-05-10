@@ -209,6 +209,10 @@ local function refresh()
         end
         updateDisplay()
         mainFrame:Show()
+        -- Re-check actual cursor position now that the frame is visible.
+        -- hideAll() may have been called mid-exchange (key briefly absent from bag),
+        -- hiding the frame and making IsMouseOver() return false prematurely.
+        if built and iconArea then onHover = iconArea:IsMouseOver() end
         syncBinding()
     else
         hideAll()
@@ -253,7 +257,6 @@ ev:SetScript("OnEvent", function(_, event, arg1)
                 hideAll()
             else
                 if targetLevel == 0 or targetLevel > keyLevel then targetLevel = keyLevel end
-                if built and iconArea then onHover = iconArea:IsMouseOver() end
                 syncBinding()
                 updateDisplay()
             end
