@@ -73,11 +73,12 @@ local function setBinding(active)
     bindActive = active
 end
 
--- Binding follows hover state only — not locked state.
--- Keeping the binding active during the gossip cycle is safe: INTERACTTARGET
--- while gossip is already open is a no-op in WoW.
 local function syncBinding()
-    setBinding(onHover)
+    setBinding(onHover and not locked)
+end
+
+local function dbg(msg)
+    DEFAULT_CHAT_FRAME:AddMessage("|cff888888[KT]|r " .. msg)
 end
 
 local function updateDisplay()
@@ -247,6 +248,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
 
     elseif event == "BAG_UPDATE_DELAYED" then
         local lv = readKeyLevel()
+        dbg(string.format("BAG lv=%d kl=%d tl=%d locked=%s", lv, keyLevel, targetLevel, tostring(locked)))
         if lv ~= keyLevel and not (lv == 0 and locked) then
             keyLevel = lv
             locked   = false
@@ -255,12 +257,11 @@ ev:SetScript("OnEvent", function(_, event, arg1)
                 hideAll()
             else
                 if targetLevel == 0 or targetLevel > keyLevel then targetLevel = keyLevel end
-                -- Frame stayed visible during the exchange (refresh() skips hideAll while
-                -- locked), so IsMouseOver() now gives the true cursor position.
                 if built and iconArea then onHover = iconArea:IsMouseOver() end
                 syncBinding()
                 updateDisplay()
             end
+            dbg(string.format("  → kl=%d tl=%d onHover=%s", keyLevel, targetLevel, tostring(onHover)))
         end
         refresh()
 
@@ -268,20 +269,31 @@ ev:SetScript("OnEvent", function(_, event, arg1)
         if targetNpcId() ~= NPC_ID then return end
 
         local gossipText = C_GossipInfo.GetText() or ""
+        dbg(string.format("GOSSIP kl=%d tl=%d locked=%s text='%s'", keyLevel, targetLevel, tostring(locked), gossipText:sub(1,30)))
 
         if gossipText == GOSSIP_DONE_TEXT then
             C_GossipInfo.CloseGossip()
+            dbg("  → done text, closing")
             return
         end
 
-        if keyLevel <= targetLevel then return end
+        if keyLevel <= targetLevel then
+            C_GossipInfo.CloseGossip()
+            dbg("  → at target, closing gossip")
+            return
+        end
+
+        if locked then
+            dbg("  → locked, ignoring")
+            return
+        end
 
         local opts = C_GossipInfo.GetOptions()
         for _, opt in ipairs(opts) do
             if opt.name == GOSSIP_DOWNGRADE then
                 locked = true
-                -- Don't touch the binding here: keeping it active during gossip
-                -- handling is safe (INTERACTTARGET while gossip is open = no-op).
+                syncBinding()
+                dbg("  → selecting downgrade")
                 C_GossipInfo.SelectOption(opt.gossipOptionID, nil, true)
                 return
             end
