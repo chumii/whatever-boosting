@@ -281,3 +281,21 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
   cursor: default;
 }
 .tl-bar:hover { background: rgba(249,115,22,0.35); }
+.tl-bar--preliminary {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(249,115,22,0.18) 0px,
+    rgba(249,115,22,0.18) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+.tl-bar--preliminary:hover {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(249,115,22,0.32) 0px,
+    rgba(249,115,22,0.32) 4px,
+    rgba(249,115,22,0.08) 4px,
+    rgba(249,115,22,0.08) 8px
+  );
+}

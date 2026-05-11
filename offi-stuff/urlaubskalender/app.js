@@ -57,9 +57,10 @@ function openDialog(id, title, values = {}) {
   form.reset();
   form.dataset.editingId = values.id || "";
   for (const [k, v] of Object.entries(values)) {
-    const el = form.elements[k];
-    if (!el || v == null) continue;
-    el.value = v;
+    const field = form.elements[k];
+    if (!field || v == null) continue;
+    if (field.type === "checkbox") field.checked = v;
+    else field.value = v;
   }
   dlg.showModal();
 }
@@ -180,7 +181,7 @@ function renderTimeline() {
         const clampE   = Math.min(DAYS - 1, endIdx);
         if (clampS >= DAYS || clampE < 0) return;
 
-        const bar = el("div", "tl-bar", vac.note || "");
+        const bar = el("div", vac.is_preliminary ? "tl-bar tl-bar--preliminary" : "tl-bar", vac.note || "");
         bar.style.cssText = `grid-column:${clampS + 1}/span ${clampE - clampS + 1}; grid-row:${row};`;
         if (vac.note) bar.title = vac.note;
         grid.append(bar);
@@ -280,8 +281,9 @@ function populateVacationDialog() {
     .map((m) => `<option value="${m.id}">${m.name}</option>`)
     .join("");
   const dlg = document.getElementById("vacation-dialog");
-  dlg.querySelector("[name=end_date]").disabled = false;
-  dlg.querySelector("[name=one_day]").checked   = false;
+  dlg.querySelector("[name=end_date]").disabled      = false;
+  dlg.querySelector("[name=one_day]").checked        = false;
+  dlg.querySelector("[name=is_preliminary]").checked = false;
 }
 
 function setupOneDayCheckbox() {
@@ -322,10 +324,11 @@ function setupVacationCrud() {
       populateVacationDialog();
       openDialog("vacation-dialog", "Urlaub bearbeiten", {
         id: vac.id,
-        member_id: vac.member_id,
-        start_date: vac.start_date,
-        end_date: vac.end_date,
-        note: vac.note ?? "",
+        member_id:      vac.member_id,
+        start_date:     vac.start_date,
+        end_date:       vac.end_date,
+        note:           vac.note ?? "",
+        is_preliminary: vac.is_preliminary ?? false,
       });
     }
     if (action === "delete-vacation" && confirm("Urlaub löschen?")) {
@@ -340,10 +343,11 @@ function setupVacationCrud() {
     const form = e.target;
     const editingId = form.dataset.editingId;
     const row = {
-      member_id:  form.elements.member_id.value,
-      start_date: form.elements.start_date.value,
-      end_date:   form.elements.end_date.value,
-      note:       form.elements.note.value.trim() || null,
+      member_id:      form.elements.member_id.value,
+      start_date:     form.elements.start_date.value,
+      end_date:       form.elements.end_date.value,
+      note:           form.elements.note.value.trim() || null,
+      is_preliminary: form.elements.is_preliminary.checked,
     };
     if (editingId) await db.updateVacation(editingId, row);
     else           await db.createVacation(row);
