@@ -33,6 +33,16 @@ function fmtDate(iso) {
   return `${d}.${m}.${y}`;
 }
 
+// WoW ID week starts on Wednesday. Returns alternating 0/1 per ID week.
+function idWeekParity(iso) {
+  const d = new Date(iso + "T12:00:00");
+  const daysSinceWed = (d.getDay() + 4) % 7; // 0 on Wed, 4 on Sun, etc.
+  const wed = new Date(d);
+  wed.setDate(d.getDate() - daysSinceWed);
+  const REF_WED = new Date("1970-01-07T12:00:00"); // first Wed after epoch
+  return Math.round((wed - REF_WED) / (7 * 86_400_000)) % 2;
+}
+
 const DOW_SHORT = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 const MONTH_SHORT = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
                      "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
@@ -162,7 +172,7 @@ function renderTimeline() {
   days.forEach((iso, idx) => {
     const d      = new Date(iso + "T12:00:00");
     const dow    = d.getDay();
-    const hiCls  = (dow === 3 || dow === 0) ? " day-highlight" : "";
+    const hiCls  = (dow === 3 || dow === 0) ? " day-highlight" + (idWeekParity(iso) ? " day-highlight-alt" : "") : "";
     const todCls = iso === todayStr ? " day-today" : "";
 
     const cell = el("div", `tl-day-header${hiCls}${todCls}`);
@@ -182,7 +192,7 @@ function renderTimeline() {
     days.forEach((iso, idx) => {
       const d      = new Date(iso + "T12:00:00");
       const dow    = d.getDay();
-      const hiCls  = (dow === 3 || dow === 0) ? " day-highlight" : "";
+      const hiCls  = (dow === 3 || dow === 0) ? " day-highlight" + (idWeekParity(iso) ? " day-highlight-alt" : "") : "";
       const todCls = iso === todayStr ? " day-today" : "";
       const bg     = el("div", `tl-bg-cell${hiCls}${todCls}`);
       bg.style.cssText = `grid-column:${idx + 1}; grid-row:${row};`;
