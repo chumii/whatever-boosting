@@ -88,7 +88,7 @@ function renderAll() {
 
 // ── Timeline ──────────────────────────────────────────────────────────────
 
-const DAYS  = 90;  // ~3 Monate
+const DAYS  = 60;  // ~2 Monate
 const COL_W = 26;  // px per day column
 
 function renderTimeline() {
@@ -99,7 +99,9 @@ function renderTimeline() {
   const days = Array.from({ length: DAYS }, (_, i) => addDays(t0, i));
 
   const activeMembers = state.members.filter((m) =>
-    state.vacations.some((v) => v.member_id === m.id)
+    state.vacations.some(
+      (v) => v.member_id === m.id && v.start_date <= windowEnd && v.end_date >= t0
+    )
   );
 
   const names = document.getElementById("tl-names");
