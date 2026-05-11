@@ -208,6 +208,10 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
   border-bottom: 1px solid var(--border);
   border-right: 1px solid var(--border);
 }
+.tl-overflow-hint {
+  margin-left: auto; padding-left: 4px;
+  font-size: 11px; color: var(--muted);
+}
 
 /* Scrollable day area */
 .timeline-wrap {

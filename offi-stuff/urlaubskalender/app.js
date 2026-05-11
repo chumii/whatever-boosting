@@ -87,14 +87,20 @@ function renderAll() {
 
 // ── Timeline ──────────────────────────────────────────────────────────────
 
-const DAYS  = 182;  // ~6 Monate
-const COL_W = 26;   // px per day column
+const DAYS  = 90;  // ~3 Monate
+const COL_W = 26;  // px per day column
 
 function renderTimeline() {
-  const todayStr = today();
-  const t0       = addDays(todayStr, -7);
+  const todayStr  = today();
+  const t0        = addDays(todayStr, -7);
+  const windowEnd = addDays(t0, DAYS - 1);
 
-  const days  = Array.from({ length: DAYS }, (_, i) => addDays(t0, i));
+  const days = Array.from({ length: DAYS }, (_, i) => addDays(t0, i));
+
+  const activeMembers = state.members.filter((m) =>
+    state.vacations.some((v) => v.member_id === m.id)
+  );
+
   const names = document.getElementById("tl-names");
   const grid  = document.getElementById("timeline-grid");
 
@@ -105,7 +111,14 @@ function renderTimeline() {
   // ── Names column (outside scroll) ──────────────────────────────────────
 
   names.append(el("div", "tl-name-spacer-fixed"));
-  state.members.forEach((member) => names.append(el("div", "tl-member-name", member.name)));
+  activeMembers.forEach((member) => {
+    const nameEl    = el("div", "tl-member-name", member.name);
+    const hasRight  = state.vacations.some(
+      (v) => v.member_id === member.id && v.end_date > windowEnd
+    );
+    if (hasRight) nameEl.append(el("span", "tl-overflow-hint", "›"));
+    names.append(nameEl);
+  });
 
   // ── Header row 1: Months ───────────────────────────────────────────────
 
@@ -145,7 +158,7 @@ function renderTimeline() {
 
   // ── Member rows ────────────────────────────────────────────────────────
 
-  state.members.forEach((member) => {
+  activeMembers.forEach((member) => {
     const row = gridRow++;
 
     days.forEach((iso, idx) => {
