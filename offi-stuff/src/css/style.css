@@ -176,6 +176,19 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
   display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;
 }
 
+/* ── Raid absent cards ────────────────────────────────── */
+
+.raid-absent-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.raid-absent-card {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 2px solid rgba(59,130,246,0.45);
+  border-radius: 4px; padding: 6px 12px; font-size: 12px;
+}
+.raid-absent-date { font-weight: 500; min-width: 60px; }
+.raid-absent-count { color: var(--muted); }
+.raid-absent-names { color: var(--text); }
+
 /* ── Timeline (Gantt) ─────────────────────────────────── */
 
 .timeline-outer { display: flex; align-items: flex-start; }

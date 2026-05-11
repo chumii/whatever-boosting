@@ -81,8 +81,8 @@ async function loadAll() {
 
 function renderAll() {
   renderTimeline();
+  renderAbsentRaidDays();
   renderVacationsTable();
-  renderMembersTable();
 }
 
 // ── Timeline ──────────────────────────────────────────────────────────────
@@ -218,22 +218,44 @@ function renderVacationsTable() {
   });
 }
 
-// ── Members table ─────────────────────────────────────────────────────────
+// ── Absent raid days ──────────────────────────────────────────────────────
 
-function renderMembersTable() {
-  const tbody = $("#members-table tbody");
-  tbody.innerHTML = "";
+function renderAbsentRaidDays() {
+  const container = document.getElementById("absent-raid-days");
+  if (!container) return;
+  container.innerHTML = "";
 
-  state.members.forEach((m) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${m.name}</td>
-      <td>${m.discord_name ?? '<span class="muted">—</span>'}</td>
-      <td class="actions">
-        <button class="action-btn" data-action="edit-member" data-id="${m.id}">Bearbeiten</button>
-        <button class="action-btn danger" data-action="delete-member" data-id="${m.id}">Löschen</button>
-      </td>`;
-    tbody.append(tr);
+  const todayStr = today();
+  const results  = [];
+
+  for (let i = 0; i <= 90; i++) {
+    const iso = addDays(todayStr, i);
+    const dow = new Date(iso + "T12:00:00").getDay();
+    if (dow !== 3 && dow !== 0) continue;
+
+    const absent = state.members.filter((m) =>
+      state.vacations.some(
+        (v) => v.member_id === m.id && v.start_date <= iso && v.end_date >= iso
+      )
+    );
+    if (absent.length > 0) results.push({ iso, dow, absent });
+  }
+
+  if (results.length === 0) {
+    container.append(el("p", "muted small", "Keine Urlaube an Raidtagen in den nächsten 90 Tagen."));
+    return;
+  }
+
+  results.forEach(({ iso, dow, absent }) => {
+    const [, m, d] = iso.split("-");
+    const dateStr  = `${DOW_SHORT[dow]} ${parseInt(d)}.${parseInt(m)}.`;
+
+    const card  = el("div", "raid-absent-card");
+    const date  = el("span", "raid-absent-date", dateStr);
+    const count = el("span", "raid-absent-count", String(absent.length));
+    const names = el("span", "raid-absent-names", absent.map((a) => a.name).join(", "));
+    card.append(date, count, names);
+    container.append(card);
   });
 }
 
@@ -318,49 +340,6 @@ function setupVacationCrud() {
   });
 }
 
-// ── CRUD: Members ─────────────────────────────────────────────────────────
-
-function setupMemberCrud() {
-  $("#new-member-btn").addEventListener("click", () => {
-    openDialog("member-dialog", "Mitglied hinzufügen");
-  });
-
-  $("#members-table").addEventListener("click", async (e) => {
-    const btn = e.target.closest("[data-action]");
-    if (!btn) return;
-    const { action, id } = btn.dataset;
-    const member = state.members.find((m) => m.id === id);
-
-    if (action === "edit-member" && member) {
-      openDialog("member-dialog", "Mitglied bearbeiten", {
-        id: member.id,
-        name: member.name,
-        discord_name: member.discord_name ?? "",
-      });
-    }
-    if (action === "delete-member" && confirm(`"${member?.name}" löschen? Alle Urlaube werden ebenfalls gelöscht.`)) {
-      await db.deleteMember(id);
-      await loadAll();
-      renderAll();
-    }
-  });
-
-  $("#member-dialog form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const editingId = form.dataset.editingId;
-    const row = {
-      name:         form.elements.name.value.trim(),
-      discord_name: form.elements.discord_name.value.trim() || null,
-    };
-    if (editingId) await db.updateMember(editingId, row);
-    else           await db.createMember(row);
-    form.closest("dialog").close();
-    await loadAll();
-    renderAll();
-  });
-}
-
 // ── Realtime ──────────────────────────────────────────────────────────────
 
 function setupRealtime() {
@@ -381,7 +360,6 @@ function setupRealtime() {
 async function init() {
   setupDialogClosers();
   setupVacationCrud();
-  setupMemberCrud();
   await loadAll();
   renderAll();
   setupRealtime();

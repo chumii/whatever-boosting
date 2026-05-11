@@ -2,7 +2,7 @@
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-    <title>Whatever — Urlaubskalender</title>
+    <title>Whatever — Mitglieder</title>
     <link rel="stylesheet" href="../src/css/style.css" />
   </head>
   <body>
@@ -28,64 +28,38 @@
     <div id="content" style="display:none">
       <aside class="sidebar">
         <a class="sidebar-link" href="/offi-stuff/">Übersicht</a>
-        <a class="sidebar-link active" href="/offi-stuff/urlaubskalender/">Urlaubskalender</a>
-        <a class="sidebar-link" href="/offi-stuff/mitglieder/">Mitglieder</a>
+        <a class="sidebar-link" href="/offi-stuff/urlaubskalender/">Urlaubskalender</a>
+        <a class="sidebar-link active" href="/offi-stuff/mitglieder/">Mitglieder</a>
       </aside>
 
       <main>
-        <!-- Timeline -->
-        <div class="card">
-          <div class="timeline-outer">
-            <div class="tl-names" id="tl-names"></div>
-            <div class="timeline-wrap">
-              <div class="timeline-grid" id="timeline-grid"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Raidtage mit Abwesenheiten -->
-        <div class="card" id="raid-absent-card">
-          <div class="card-header">
-            <h2>Raidtage</h2>
-          </div>
-          <div id="absent-raid-days" class="raid-absent-list"></div>
-        </div>
-
-        <!-- Urlaube -->
         <div class="card">
           <div class="card-header">
-            <h2>Urlaube</h2>
-            <button class="btn btn-primary btn-with-icon" id="new-vacation-btn">
+            <h2>Mitglieder</h2>
+            <button class="btn btn-primary btn-with-icon" id="new-member-btn">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              <span>Urlaub</span>
+              <span>Mitglied</span>
             </button>
           </div>
-          <table class="data-table" id="vacations-table">
+          <table class="data-table" id="members-table">
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Von</th>
-                <th>Bis</th>
-                <th>Notiz</th>
+                <th>Discord</th>
                 <th class="actions"></th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-
       </main>
     </div>
 
-    <!-- Vacation Dialog -->
-    <dialog id="vacation-dialog" class="dialog">
-      <form method="dialog" data-form="vacation">
-        <h2 data-title>Urlaub hinzufügen</h2>
-        <label>Mitglied<select name="member_id" required></select></label>
-        <label>Von<input name="start_date" type="date" required /></label>
-        <label class="checkbox-label"><input type="checkbox" name="one_day" /> Eintägig</label>
-        <label>Bis<input name="end_date" type="date" required /></label>
-        <label>Notiz<input name="note" placeholder="optional" /></label>
+    <dialog id="member-dialog" class="dialog">
+      <form method="dialog" data-form="member">
+        <h2 data-title>Mitglied hinzufügen</h2>
+        <label>Name<input name="name" required /></label>
+        <label>Discord<input name="discord_name" placeholder="optional" /></label>
         <div class="dialog-actions">
           <button type="button" data-close>Abbrechen</button>
           <button type="submit" class="btn btn-primary">Speichern</button>
