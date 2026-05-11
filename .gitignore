@@ -2,3 +2,4 @@
 .env.local
 .DS_Store
 boosting/src/js/config.js
+offi-stuff/config.js

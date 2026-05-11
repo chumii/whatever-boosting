@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Whatever — Offizeug</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0; padding: 0; height: 100%;
+        background: #0a0a0a; color: #fff;
+        font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
+      }
+      a { color: inherit; text-decoration: none; }
+
+      .topnav {
+        display: flex; align-items: center; gap: 24px;
+        padding: 0 16px; height: 44px;
+        background: #111; border-bottom: 1px solid #222;
+      }
+      .topnav-brand { font-weight: 600; font-size: 13px; letter-spacing: -0.01em; }
+      .topnav-brand:hover { color: #888; }
+      .topnav-links { display: flex; gap: 4px; }
+      .topnav-link {
+        padding: 5px 10px; border-radius: 4px; font-size: 13px; color: #888;
+      }
+      .topnav-link:hover { color: #fff; background: #1a1a1a; }
+      .topnav-link.active { color: #fff; background: #1a1a1a; }
+
+      #gate {
+        display: flex; align-items: center; justify-content: center;
+        height: calc(100vh - 44px);
+      }
+      .gate-box {
+        width: 280px;
+        display: flex; flex-direction: column; gap: 12px;
+      }
+      .gate-label { font-size: 13px; color: #888; }
+      .gate-row { display: flex; gap: 8px; }
+      .gate-input {
+        flex: 1; height: 32px; padding: 0 10px;
+        background: #111; border: 1px solid #222; border-radius: 4px;
+        color: #fff; font: inherit; outline: none;
+      }
+      .gate-input:focus { border-color: #3f3f3f; }
+      .gate-btn {
+        height: 32px; padding: 0 14px;
+        background: #fff; color: #000; border: none; border-radius: 4px;
+        font: inherit; font-weight: 500; cursor: pointer;
+      }
+      .gate-btn:hover { background: #e5e5e5; }
+      .gate-error { font-size: 12px; color: #ef4444; min-height: 16px; }
+
+      #content { padding: 28px; display: none; }
+    </style>
+  </head>
+  <body>
+    <nav class="topnav">
+      <a class="topnav-brand" href="/">Whatever</a>
+      <div class="topnav-links">
+        <a class="topnav-link" href="/boosting/">Boosting</a>
+        <a class="topnav-link active" href="/offi-stuff/">Offizeug</a>
+      </div>
+    </nav>
+
+    <div id="gate">
+      <div class="gate-box">
+        <div class="gate-label">Passwort</div>
+        <div class="gate-row">
+          <input class="gate-input" id="pw-input" type="password" placeholder="" autocomplete="current-password" />
+          <button class="gate-btn" id="pw-btn">OK</button>
+        </div>
+        <div class="gate-error" id="pw-error"></div>
+      </div>
+    </div>
+
+    <div id="content">
+      <!-- module content goes here -->
+    </div>
+
+    <script type="module">
+      import { PASSWORD } from './config.js';
+
+      const gate    = document.getElementById('gate');
+      const content = document.getElementById('content');
+      const input   = document.getElementById('pw-input');
+      const btn     = document.getElementById('pw-btn');
+      const error   = document.getElementById('pw-error');
+
+      function unlock() {
+        gate.style.display = 'none';
+        content.style.display = 'block';
+      }
+
+      if (sessionStorage.getItem('offi-auth') === '1') {
+        unlock();
+      } else {
+        input.focus();
+      }
+
+      function attempt() {
+        if (input.value === PASSWORD) {
+          sessionStorage.setItem('offi-auth', '1');
+          unlock();
+        } else {
+          error.textContent = 'Falsches Passwort.';
+          input.value = '';
+          input.focus();
+        }
+      }
+
+      btn.addEventListener('click', attempt);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') attempt(); });
+    </script>
+  </body>
+</html>
