@@ -38,6 +38,7 @@ async function loadAll() {
 }
 
 function renderMembersTable() {
+  document.querySelector(".card-header h2").textContent = `Mitglieder (${state.members.length})`;
   const tbody = $("#members-table tbody");
   tbody.innerHTML = "";
   state.members.forEach((m) => {
