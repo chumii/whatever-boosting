@@ -2,7 +2,7 @@
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-    <title>Whatever — Urlaubskalender</title>
+    <title>Whatever — Kalender</title>
     <link rel="stylesheet" href="../src/css/style.css" />
   </head>
   <body>
@@ -28,7 +28,7 @@
     <div id="content" style="display:none">
       <aside class="sidebar">
         <a class="sidebar-link" href="/offi-stuff/">Übersicht</a>
-        <a class="sidebar-link active" href="/offi-stuff/urlaubskalender/">Urlaubskalender</a>
+        <a class="sidebar-link active" href="/offi-stuff/urlaubskalender/">Kalender</a>
       </aside>
 
       <main>
@@ -50,13 +50,12 @@
           <div id="absent-raid-days" class="raid-absent-list"></div>
         </div>
 
-        <!-- Urlaube -->
+        <!-- AFK -->
         <div class="card">
-          <div class="card-header">
-            <h2>Urlaube</h2>
+          <div class="card-header card-header--actions-only">
             <button class="btn btn-primary btn-with-icon" id="new-vacation-btn">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              <span>Urlaub</span>
+              <span>AFK</span>
             </button>
           </div>
           <table class="data-table" id="vacations-table">
@@ -79,7 +78,7 @@
     <!-- Vacation Dialog -->
     <dialog id="vacation-dialog" class="dialog">
       <form method="dialog" data-form="vacation">
-        <h2 data-title>Urlaub hinzufügen</h2>
+        <h2 data-title>AFK hinzufügen</h2>
         <label>Mitglied<select name="member_id" required></select></label>
         <label>Von<input name="start_date" type="date" required /></label>
         <label class="checkbox-label"><input type="checkbox" name="one_day" /> Eintägig</label>

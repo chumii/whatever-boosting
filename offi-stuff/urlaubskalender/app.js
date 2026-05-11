@@ -273,7 +273,7 @@ function renderAbsentRaidDays() {
   }
 
   if (results.length === 0) {
-    container.append(el("p", "muted small", "Keine Urlaube an Raidtagen in den nächsten 90 Tagen."));
+    container.append(el("p", "muted small", "Niemand AFK an Raidtagen in den nächsten 90 Tagen."));
     return;
   }
 
@@ -328,7 +328,7 @@ function setupVacationCrud() {
 
   $("#new-vacation-btn").addEventListener("click", () => {
     populateVacationDialog();
-    openDialog("vacation-dialog", "Urlaub hinzufügen");
+    openDialog("vacation-dialog", "AFK hinzufügen");
   });
 
   $("#vacations-table").addEventListener("click", async (e) => {
@@ -339,7 +339,7 @@ function setupVacationCrud() {
 
     if (action === "edit-vacation" && vac) {
       populateVacationDialog();
-      openDialog("vacation-dialog", "Urlaub bearbeiten", {
+      openDialog("vacation-dialog", "AFK bearbeiten", {
         id: vac.id,
         member_id:      vac.member_id,
         start_date:     vac.start_date,
@@ -348,7 +348,7 @@ function setupVacationCrud() {
         is_preliminary: vac.is_preliminary ?? false,
       });
     }
-    if (action === "delete-vacation" && confirm("Urlaub löschen?")) {
+    if (action === "delete-vacation" && confirm("AFK-Eintrag löschen?")) {
       await db.deleteVacation(id);
       await loadAll();
       renderAll();

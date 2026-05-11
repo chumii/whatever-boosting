@@ -72,7 +72,7 @@ function setupMemberCrud() {
         discord_name: member.discord_name ?? "",
       });
     }
-    if (action === "delete-member" && confirm(`"${member?.name}" löschen? Alle Urlaube werden ebenfalls gelöscht.`)) {
+    if (action === "delete-member" && confirm(`"${member?.name}" löschen? Alle AFK-Einträge werden ebenfalls gelöscht.`)) {
       await db.deleteMember(id);
       await loadAll();
       renderMembersTable();
