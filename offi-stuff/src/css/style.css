@@ -209,8 +209,9 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
   border-right: 1px solid var(--border);
 }
 .tl-overflow-hint {
-  margin-left: auto; padding-left: 4px;
-  font-size: 11px; color: var(--muted);
+  margin-left: auto; padding-left: 6px;
+  font-size: 14px; color: var(--text); opacity: 0.5;
+  line-height: 1;
 }
 
 /* Scrollable day area */
