@@ -247,7 +247,7 @@ ev:SetScript("OnEvent", function(_, event, arg1)
 
     elseif event == "BAG_UPDATE_DELAYED" then
         local lv = readKeyLevel()
-        if lv ~= keyLevel then
+        if lv ~= keyLevel and not (lv == 0 and locked) then
             keyLevel = lv
             locked   = false
             if keyLevel == 0 then
