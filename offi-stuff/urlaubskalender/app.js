@@ -190,7 +190,18 @@ function renderTimeline() {
 
   // Scroll to show "heute" at roughly 1/4 from left
   const wrap = document.querySelector(".timeline-wrap");
-  if (wrap) wrap.scrollLeft = 7 * COL_W;
+  if (wrap) {
+    wrap.scrollLeft = 7 * COL_W;
+    if (!wrap._wheelBound) {
+      wrap._wheelBound = true;
+      wrap.addEventListener("wheel", (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          wrap.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    }
+  }
 }
 
 // ── Vacations table ───────────────────────────────────────────────────────
