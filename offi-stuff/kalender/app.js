@@ -93,7 +93,7 @@ const COL_W  = 26;  // px per day column
 
 function renderTimeline() {
   const todayStr  = today();
-  const t0        = addDays(todayStr, -7);
+  const t0        = todayStr;
   const windowEnd = addDays(t0, tlDays - 1);
 
   const days = Array.from({ length: tlDays }, (_, i) => addDays(t0, i));
@@ -207,7 +207,7 @@ function renderTimeline() {
 
   const wrap = document.querySelector(".timeline-wrap");
   if (wrap) {
-    wrap.scrollLeft = 7 * COL_W;
+    wrap.scrollLeft = 0;
     if (!wrap._wheelBound) {
       wrap._wheelBound = true;
       wrap.addEventListener("wheel", (e) => {
