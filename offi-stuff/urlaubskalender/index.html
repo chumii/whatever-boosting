@@ -97,6 +97,7 @@
         <h2 data-title>Urlaub hinzufügen</h2>
         <label>Mitglied<select name="member_id" required></select></label>
         <label>Von<input name="start_date" type="date" required /></label>
+        <label class="checkbox-label"><input type="checkbox" name="one_day" /> Eintägig</label>
         <label>Bis<input name="end_date" type="date" required /></label>
         <label>Notiz<input name="note" placeholder="optional" /></label>
         <div class="dialog-actions">
@@ -110,8 +111,8 @@
     <dialog id="member-dialog" class="dialog">
       <form method="dialog" data-form="member">
         <h2 data-title>Mitglied hinzufügen</h2>
-        <label>Name<input name="name" required placeholder="z.B. Jonas" /></label>
-        <label>Discord<input name="discord_name" placeholder="optional, z.B. bambule" /></label>
+        <label>Name<input name="name" required /></label>
+        <label>Discord<input name="discord_name" placeholder="optional" /></label>
         <div class="dialog-actions">
           <button type="button" data-close>Abbrechen</button>
           <button type="submit" class="btn btn-primary">Speichern</button>

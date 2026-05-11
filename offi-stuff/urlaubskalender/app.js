@@ -244,9 +244,34 @@ function populateVacationDialog() {
   sel.innerHTML = state.members
     .map((m) => `<option value="${m.id}">${m.name}</option>`)
     .join("");
+  const dlg = document.getElementById("vacation-dialog");
+  dlg.querySelector("[name=end_date]").disabled = false;
+  dlg.querySelector("[name=one_day]").checked   = false;
+}
+
+function setupOneDayCheckbox() {
+  const dlg       = document.getElementById("vacation-dialog");
+  const checkbox  = dlg.querySelector("[name=one_day]");
+  const startInput = dlg.querySelector("[name=start_date]");
+  const endInput  = dlg.querySelector("[name=end_date]");
+
+  checkbox.addEventListener("change", () => {
+    if (checkbox.checked) {
+      endInput.value    = startInput.value;
+      endInput.disabled = true;
+    } else {
+      endInput.disabled = false;
+    }
+  });
+
+  startInput.addEventListener("change", () => {
+    if (checkbox.checked) endInput.value = startInput.value;
+  });
 }
 
 function setupVacationCrud() {
+  setupOneDayCheckbox();
+
   $("#new-vacation-btn").addEventListener("click", () => {
     populateVacationDialog();
     openDialog("vacation-dialog", "Urlaub hinzufügen");
