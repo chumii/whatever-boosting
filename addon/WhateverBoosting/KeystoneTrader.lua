@@ -33,7 +33,9 @@ local GOSSIP_DONE_TEXT = "Here, give this one a try!"
 local enabled     = true  -- default on; overridden by SavedVariables on ADDON_LOADED
 local keyLevel    = 0
 local targetLevel = 0
+local onHover     = false
 local locked      = false   -- true while waiting for BAG_UPDATE after a trade
+local bindActive  = false
 local built       = false
 
 local mainFrame, iconArea, upBtn, downBtn, curLabel, origLabel
@@ -61,6 +63,23 @@ local function shouldShow()
     return (mapID == ZONE_MAP_ID)
 end
 
+local function setBinding(active)
+    if active == bindActive then return end
+    if active then
+        SetOverrideBinding(mainFrame, true, "MOUSEWHEELDOWN", "INTERACTTARGET")
+    else
+        ClearOverrideBindings(mainFrame)
+    end
+    bindActive = active
+end
+
+-- Binding follows hover state only — not locked state.
+-- Keeping the binding active during the gossip cycle is safe: INTERACTTARGET
+-- while gossip is already open is a no-op in WoW.
+local function syncBinding()
+    setBinding(onHover)
+end
+
 local function updateDisplay()
     if not built then return end
     if targetLevel == keyLevel then
@@ -76,6 +95,9 @@ local function updateDisplay()
 end
 
 local function hideAll()
+    setBinding(false)
+    onHover = false
+    locked  = false
     if mainFrame then mainFrame:Hide() end
 end
 
@@ -132,37 +154,33 @@ local function buildUI()
         C_GossipInfo.CloseGossip()
     end)
 
-    -- Icon area — right column. Mouse wheel here triggers the interact.
+    -- Icon area — right column. Hover here to activate the scroll binding.
     iconArea = CreateFrame("Frame", "WBKTIconArea", mainFrame)
     iconArea:SetSize(52, 52)
     iconArea:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 40, -8)
     iconArea:EnableMouse(true)
-    iconArea:EnableMouseWheel(true)
 
     local iconTex = iconArea:CreateTexture(nil, "ARTWORK")
     iconTex:SetAllPoints()
     iconTex:SetTexture(525134)  -- keystone icon
 
-    -- Scroll down over the icon to interact with the NPC (one level per scroll).
-    -- OnMouseWheel is frame-local: no binding management needed.
-    iconArea:SetScript("OnMouseWheel", function(_, delta)
-        if delta < 0 and not locked and keyLevel > targetLevel then
-            locked = true
-            InteractUnit("target")
-        end
-    end)
-
     iconArea:SetScript("OnEnter", function()
+        onHover = true
+        syncBinding()
         GameTooltip:SetOwner(iconArea, "ANCHOR_RIGHT")
         GameTooltip:AddLine("Keystone Trader", 1, 0.82, 0)
-        GameTooltip:AddLine("Scroll down to interact with " .. NPC_NAME .. ".", 1, 1, 1, true)
+        GameTooltip:AddLine("Hover here and scroll down to interact with " .. NPC_NAME .. ".", 1, 1, 1, true)
         GameTooltip:AddLine("Each scroll lowers your key by 1.", 0.6, 0.6, 0.6, true)
-        if locked then
-            GameTooltip:AddLine("|cffff8800Waiting for key to update...|r", 1, 1, 1)
-        end
         GameTooltip:Show()
     end)
+
+    -- Ignore OnLeave while locked: the gossip frame stealing focus fires a
+    -- spurious leave even though the cursor hasn't moved off the icon.
     iconArea:SetScript("OnLeave", function()
+        if not locked then
+            onHover = false
+            syncBinding()
+        end
         GameTooltip:Hide()
     end)
 
@@ -176,7 +194,6 @@ local function buildUI()
     origLabel = iconArea:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     origLabel:SetPoint("TOPRIGHT", iconArea, "TOPRIGHT", 4, 4)
     origLabel:SetTextColor(0.5, 0.5, 0.5)
-
 end
 
 -- ── Core logic ─────────────────────────────────────────────────────────────
@@ -193,7 +210,10 @@ local function refresh()
         end
         updateDisplay()
         mainFrame:Show()
-    else
+    elseif not locked then
+        -- Don't hide while locked: the keystone briefly leaves the bag during
+        -- the Lindormi exchange, which would make IsMouseOver() return false on
+        -- a hidden frame and permanently lose the hover/binding state.
         hideAll()
     end
 end
@@ -235,6 +255,10 @@ ev:SetScript("OnEvent", function(_, event, arg1)
                 hideAll()
             else
                 if targetLevel == 0 or targetLevel > keyLevel then targetLevel = keyLevel end
+                -- Frame stayed visible during the exchange (refresh() skips hideAll while
+                -- locked), so IsMouseOver() now gives the true cursor position.
+                if built and iconArea then onHover = iconArea:IsMouseOver() end
+                syncBinding()
                 updateDisplay()
             end
         end
@@ -256,6 +280,8 @@ ev:SetScript("OnEvent", function(_, event, arg1)
         for _, opt in ipairs(opts) do
             if opt.name == GOSSIP_DOWNGRADE then
                 locked = true
+                -- Don't touch the binding here: keeping it active during gossip
+                -- handling is safe (INTERACTTARGET while gossip is open = no-op).
                 C_GossipInfo.SelectOption(opt.gossipOptionID, nil, true)
                 return
             end
