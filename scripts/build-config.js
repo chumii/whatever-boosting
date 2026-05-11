@@ -8,8 +8,9 @@ fs.writeFileSync(
   "boosting/src/js/config.js",
   `export const SUPABASE_URL = ${JSON.stringify(url)};\nexport const SUPABASE_ANON_KEY = ${JSON.stringify(key)};\n`
 );
+fs.mkdirSync("offi-stuff/src/js", { recursive: true });
 fs.writeFileSync(
-  "offi-stuff/config.js",
-  `export const PASSWORD = ${JSON.stringify(offiPw)};\n`
+  "offi-stuff/src/js/config.js",
+  `export const SUPABASE_URL = ${JSON.stringify(url)};\nexport const SUPABASE_ANON_KEY = ${JSON.stringify(key)};\nexport const PASSWORD = ${JSON.stringify(offiPw)};\n`
 );
 console.log("config files written");

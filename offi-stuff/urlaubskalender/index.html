@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Whatever — Urlaubskalender</title>
+    <link rel="stylesheet" href="../src/css/style.css" />
+  </head>
+  <body>
+    <nav class="topnav">
+      <a class="topnav-brand" href="/">Whatever</a>
+      <div class="topnav-links">
+        <a class="topnav-link" href="/boosting/">Boosting</a>
+        <a class="topnav-link active" href="/offi-stuff/">Offizeug</a>
+      </div>
+    </nav>
+
+    <div id="gate">
+      <div class="gate-box">
+        <div class="gate-label">Passwort</div>
+        <div class="gate-row">
+          <input class="gate-input" id="pw-input" type="password" autocomplete="current-password" />
+          <button class="gate-btn" id="pw-btn">OK</button>
+        </div>
+        <div class="gate-error" id="pw-error"></div>
+      </div>
+    </div>
+
+    <div id="content" style="display:none">
+      <aside class="sidebar">
+        <a class="sidebar-link" href="/offi-stuff/">Übersicht</a>
+        <a class="sidebar-link active" href="/offi-stuff/urlaubskalender/">Urlaubskalender</a>
+      </aside>
+
+      <main>
+        <!-- Timeline -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Timeline</h2>
+          </div>
+          <div class="timeline-wrap">
+            <div class="timeline-grid" id="timeline-grid"></div>
+          </div>
+        </div>
+
+        <!-- Urlaube -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Urlaube</h2>
+            <button class="btn btn-primary btn-with-icon" id="new-vacation-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span>Urlaub</span>
+            </button>
+          </div>
+          <table class="data-table" id="vacations-table">
+            <thead>
+              <tr>
+                <th>Mitglied</th>
+                <th>Von</th>
+                <th>Bis</th>
+                <th>Notiz</th>
+                <th class="actions"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <!-- Mitglieder -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Mitglieder</h2>
+            <button class="btn btn-primary btn-with-icon" id="new-member-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span>Mitglied</span>
+            </button>
+          </div>
+          <table class="data-table" id="members-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Discord</th>
+                <th class="actions"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <!-- Vacation Dialog -->
+    <dialog id="vacation-dialog" class="dialog">
+      <form method="dialog" data-form="vacation">
+        <h2 data-title>Urlaub hinzufügen</h2>
+        <label>Mitglied<select name="member_id" required></select></label>
+        <label>Von<input name="start_date" type="date" required /></label>
+        <label>Bis<input name="end_date" type="date" required /></label>
+        <label>Notiz<input name="note" placeholder="optional" /></label>
+        <div class="dialog-actions">
+          <button type="button" data-close>Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Speichern</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Member Dialog -->
+    <dialog id="member-dialog" class="dialog">
+      <form method="dialog" data-form="member">
+        <h2 data-title>Mitglied hinzufügen</h2>
+        <label>Name<input name="name" required placeholder="z.B. Jonas" /></label>
+        <label>Discord<input name="discord_name" placeholder="optional, z.B. bambule" /></label>
+        <div class="dialog-actions">
+          <button type="button" data-close>Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Speichern</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
