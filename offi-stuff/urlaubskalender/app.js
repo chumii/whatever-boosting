@@ -87,7 +87,7 @@ function renderAll() {
 
 // ── Timeline ──────────────────────────────────────────────────────────────
 
-const DAYS     = 56;   // 8 Wochen
+const DAYS     = 182;  // ~6 Monate
 const COL_W    = 26;   // px per day column
 const NAME_W   = 140;  // px for name column
 
