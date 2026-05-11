@@ -265,23 +265,22 @@ function renderVacationsTable() {
     tbody.append(tr);
   });
 
-  const pag = document.getElementById("vacations-pagination");
-  pag.innerHTML = "";
-  if (totalPages > 1) {
+  function buildPagination(container) {
+    container.innerHTML = "";
+    if (totalPages <= 1) return;
     const prev = document.createElement("button");
     prev.textContent = "←";
     prev.disabled = vacPage === 0;
     prev.addEventListener("click", () => { vacPage--; renderVacationsTable(); });
-
     const info = el("span", "pagination-info", `${vacPage + 1} / ${totalPages}`);
-
     const next = document.createElement("button");
     next.textContent = "→";
     next.disabled = vacPage === totalPages - 1;
     next.addEventListener("click", () => { vacPage++; renderVacationsTable(); });
-
-    pag.append(prev, info, next);
+    container.append(prev, info, next);
   }
+  buildPagination(document.getElementById("vacations-pagination-top"));
+  buildPagination(document.getElementById("vacations-pagination-bottom"));
 }
 
 // ── Absent raid days ──────────────────────────────────────────────────────
