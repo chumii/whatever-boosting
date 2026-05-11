@@ -33,9 +33,7 @@ local GOSSIP_DONE_TEXT = "Here, give this one a try!"
 local enabled     = true  -- default on; overridden by SavedVariables on ADDON_LOADED
 local keyLevel    = 0
 local targetLevel = 0
-local onHover     = false
-local locked      = false   -- paused while waiting for BAG_UPDATE after a trade
-local bindActive  = false
+local locked      = false   -- true while waiting for BAG_UPDATE after a trade
 local built       = false
 
 local mainFrame, iconArea, upBtn, downBtn, curLabel, origLabel
@@ -63,20 +61,6 @@ local function shouldShow()
     return (mapID == ZONE_MAP_ID)
 end
 
-local function setBinding(active)
-    if active == bindActive then return end
-    if active then
-        SetOverrideBinding(iconArea, true, "MOUSEWHEELDOWN", "INTERACTTARGET")
-    else
-        ClearOverrideBindings(iconArea)
-    end
-    bindActive = active
-end
-
-local function syncBinding()
-    setBinding(onHover and not locked)
-end
-
 local function updateDisplay()
     if not built then return end
     if targetLevel == keyLevel then
@@ -92,8 +76,6 @@ local function updateDisplay()
 end
 
 local function hideAll()
-    setBinding(false)
-    onHover = false
     if mainFrame then mainFrame:Hide() end
 end
 
@@ -150,24 +132,30 @@ local function buildUI()
         C_GossipInfo.CloseGossip()
     end)
 
-    -- Icon area — right column, same top as buttons.
-    -- Child frame: moves with parent when dragged.
-    -- Owns the scroll override binding.
+    -- Icon area — right column. Mouse wheel here triggers the interact.
     iconArea = CreateFrame("Frame", "WBKTIconArea", mainFrame)
     iconArea:SetSize(52, 52)
     iconArea:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 40, -8)
     iconArea:EnableMouse(true)
+    iconArea:EnableMouseWheel(true)
 
     local iconTex = iconArea:CreateTexture(nil, "ARTWORK")
     iconTex:SetAllPoints()
     iconTex:SetTexture(525134)  -- keystone icon
 
+    -- Scroll down over the icon to interact with the NPC (one level per scroll).
+    -- OnMouseWheel is frame-local: no binding management needed.
+    iconArea:SetScript("OnMouseWheel", function(_, delta)
+        if delta < 0 and not locked and keyLevel > targetLevel then
+            locked = true
+            InteractUnit("target")
+        end
+    end)
+
     iconArea:SetScript("OnEnter", function()
-        onHover = true
-        syncBinding()
         GameTooltip:SetOwner(iconArea, "ANCHOR_RIGHT")
         GameTooltip:AddLine("Keystone Trader", 1, 0.82, 0)
-        GameTooltip:AddLine("Hover here and scroll down to interact with " .. NPC_NAME .. ".", 1, 1, 1, true)
+        GameTooltip:AddLine("Scroll down to interact with " .. NPC_NAME .. ".", 1, 1, 1, true)
         GameTooltip:AddLine("Each scroll lowers your key by 1.", 0.6, 0.6, 0.6, true)
         if locked then
             GameTooltip:AddLine("|cffff8800Waiting for key to update...|r", 1, 1, 1)
@@ -175,10 +163,6 @@ local function buildUI()
         GameTooltip:Show()
     end)
     iconArea:SetScript("OnLeave", function()
-        if not locked then
-            onHover = false
-            syncBinding()
-        end
         GameTooltip:Hide()
     end)
 
@@ -209,11 +193,6 @@ local function refresh()
         end
         updateDisplay()
         mainFrame:Show()
-        -- Re-check actual cursor position now that the frame is visible.
-        -- hideAll() may have been called mid-exchange (key briefly absent from bag),
-        -- hiding the frame and making IsMouseOver() return false prematurely.
-        if built and iconArea then onHover = iconArea:IsMouseOver() end
-        syncBinding()
     else
         hideAll()
     end
@@ -252,12 +231,10 @@ ev:SetScript("OnEvent", function(_, event, arg1)
             keyLevel = lv
             locked   = false
             if keyLevel == 0 then
-                -- Key fully consumed or lost
                 targetLevel = 0
                 hideAll()
             else
                 if targetLevel == 0 or targetLevel > keyLevel then targetLevel = keyLevel end
-                syncBinding()
                 updateDisplay()
             end
         end
@@ -268,21 +245,17 @@ ev:SetScript("OnEvent", function(_, event, arg1)
 
         local gossipText = C_GossipInfo.GetText() or ""
 
-        -- NPC says this when key is already at target — just dismiss
         if gossipText == GOSSIP_DONE_TEXT then
             C_GossipInfo.CloseGossip()
             return
         end
 
-        -- Nothing to do if we're already at or below target
         if keyLevel <= targetLevel then return end
 
-        -- Auto-select the downgrade option
         local opts = C_GossipInfo.GetOptions()
         for _, opt in ipairs(opts) do
             if opt.name == GOSSIP_DOWNGRADE then
                 locked = true
-                syncBinding()
                 C_GossipInfo.SelectOption(opt.gossipOptionID, nil, true)
                 return
             end
