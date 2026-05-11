@@ -87,50 +87,46 @@ function renderAll() {
 
 // ── Timeline ──────────────────────────────────────────────────────────────
 
-const DAYS     = 182;  // ~6 Monate
-const COL_W    = 26;   // px per day column
-const NAME_W   = 140;  // px for name column
+const DAYS  = 182;  // ~6 Monate
+const COL_W = 26;   // px per day column
 
 function renderTimeline() {
   const todayStr = today();
-  const t0       = addDays(todayStr, -7); // Window start: heute -7 Tage
+  const t0       = addDays(todayStr, -7);
 
-  // Build array of ISO date strings for the window
-  const days = Array.from({ length: DAYS }, (_, i) => addDays(t0, i));
+  const days  = Array.from({ length: DAYS }, (_, i) => addDays(t0, i));
+  const names = document.getElementById("tl-names");
+  const grid  = document.getElementById("timeline-grid");
 
-  const grid = document.getElementById("timeline-grid");
-  grid.innerHTML = "";
-  grid.style.gridTemplateColumns = `${NAME_W}px repeat(${DAYS}, ${COL_W}px)`;
+  names.innerHTML = "";
+  grid.innerHTML  = "";
+  grid.style.gridTemplateColumns = `repeat(${DAYS}, ${COL_W}px)`;
 
-  let gridRow = 1;
+  // ── Names column (outside scroll) ──────────────────────────────────────
 
-  // ── Header row 1: Months ────────────────────────────────────────────────
+  names.append(el("div", "tl-name-spacer-fixed"));
+  state.members.forEach((member) => names.append(el("div", "tl-member-name", member.name)));
 
-  // Name spacer spanning both header rows
-  const spacer = el("div", "tl-name-spacer");
-  spacer.style.cssText = `grid-column:1; grid-row:1/span 2;`;
-  grid.append(spacer);
+  // ── Header row 1: Months ───────────────────────────────────────────────
 
-  let col = 2;
+  let col = 1;
   let i   = 0;
   while (i < DAYS) {
     const d         = new Date(days[i] + "T12:00:00");
     const thisMonth = d.getMonth();
     let span        = 1;
     while (i + span < DAYS) {
-      const nd = new Date(days[i + span] + "T12:00:00");
-      if (nd.getMonth() !== thisMonth) break;
+      if (new Date(days[i + span] + "T12:00:00").getMonth() !== thisMonth) break;
       span++;
     }
-    const monthEl = el("div", "tl-month",
-      `${MONTH_SHORT[d.getMonth()]} ${d.getFullYear()}`);
+    const monthEl = el("div", "tl-month", `${MONTH_SHORT[d.getMonth()]} ${d.getFullYear()}`);
     monthEl.style.cssText = `grid-column:${col}/span ${span}; grid-row:1;`;
     grid.append(monthEl);
     col += span;
     i   += span;
   }
 
-  // ── Header row 2: Day numbers + weekday ────────────────────────────────
+  // ── Header row 2: Day numbers + weekday ───────────────────────────────
 
   days.forEach((iso, idx) => {
     const d      = new Date(iso + "T12:00:00");
@@ -139,38 +135,29 @@ function renderTimeline() {
     const todCls = iso === todayStr ? " day-today" : "";
 
     const cell = el("div", `tl-day-header${hiCls}${todCls}`);
-    cell.style.cssText = `grid-column:${idx + 2}; grid-row:2;`;
-
-    const num  = el("span", "tl-day-num", String(d.getDate()));
-    const dow2 = el("span", "tl-dow", DOW_SHORT[dow]);
-    cell.append(num, dow2);
+    cell.style.cssText = `grid-column:${idx + 1}; grid-row:2;`;
+    cell.append(el("span", "tl-day-num", String(d.getDate())));
+    cell.append(el("span", "tl-dow", DOW_SHORT[dow]));
     grid.append(cell);
   });
 
-  gridRow = 3;
+  let gridRow = 3;
 
   // ── Member rows ────────────────────────────────────────────────────────
 
   state.members.forEach((member) => {
     const row = gridRow++;
 
-    // Name cell
-    const nameEl = el("div", "tl-member-name", member.name);
-    nameEl.style.cssText = `grid-column:1; grid-row:${row};`;
-    grid.append(nameEl);
-
-    // Background cells (one per day for highlight/today coloring)
     days.forEach((iso, idx) => {
       const d      = new Date(iso + "T12:00:00");
       const dow    = d.getDay();
       const hiCls  = (dow === 3 || dow === 0) ? " day-highlight" : "";
       const todCls = iso === todayStr ? " day-today" : "";
       const bg     = el("div", `tl-bg-cell${hiCls}${todCls}`);
-      bg.style.cssText = `grid-column:${idx + 2}; grid-row:${row};`;
+      bg.style.cssText = `grid-column:${idx + 1}; grid-row:${row};`;
       grid.append(bg);
     });
 
-    // Vacation bars
     state.vacations
       .filter((v) => v.member_id === member.id)
       .forEach((vac) => {
@@ -181,14 +168,12 @@ function renderTimeline() {
         if (clampS >= DAYS || clampE < 0) return;
 
         const bar = el("div", "tl-bar", vac.note || "");
-        bar.style.cssText =
-          `grid-column:${clampS + 2}/span ${clampE - clampS + 1}; grid-row:${row};`;
+        bar.style.cssText = `grid-column:${clampS + 1}/span ${clampE - clampS + 1}; grid-row:${row};`;
         if (vac.note) bar.title = vac.note;
         grid.append(bar);
       });
   });
 
-  // Scroll to show "heute" at roughly 1/4 from left
   const wrap = document.querySelector(".timeline-wrap");
   if (wrap) {
     wrap.scrollLeft = 7 * COL_W;

@@ -8,6 +8,7 @@
   --text: #ffffff;
   --muted: #888888;
   --green: #22c55e;
+  --orange: #f97316;
   --red: #ef4444;
   --blue: #3b82f6;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
@@ -173,30 +174,50 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
 
 /* ── Timeline (Gantt) ─────────────────────────────────── */
 
-.timeline-wrap { overflow-x: auto; }
+.timeline-outer { display: flex; align-items: flex-start; }
+
+/* Fixed names column — outside the scroll container */
+.tl-names { width: 140px; flex-shrink: 0; }
+.tl-name-spacer-fixed {
+  height: 56px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.tl-member-name {
+  height: 28px; padding: 0 8px;
+  display: flex; align-items: center;
+  font-size: 12px; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+/* Scrollable day area */
+.timeline-wrap {
+  flex: 1; overflow-x: auto; min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.timeline-wrap::-webkit-scrollbar { height: 3px; }
+.timeline-wrap::-webkit-scrollbar-track { background: transparent; }
+.timeline-wrap::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+.timeline-wrap::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 .timeline-grid {
   display: grid;
-  /* grid-template-columns set by JS */
+  /* grid-template-columns: repeat(DAYS, COL_Wpx) — set by JS */
   min-width: max-content;
-}
-
-/* Sticky name column (first col, header rows) */
-.tl-name-spacer {
-  background: var(--surface);
-  position: sticky; left: 0; z-index: 4;
-  border-bottom: 1px solid var(--border);
 }
 
 /* Month header */
 .tl-month {
+  height: 20px;
   background: var(--surface);
-  padding: 3px 6px;
+  padding: 2px 6px;
   font-size: 10px; color: var(--muted);
   border-bottom: 1px solid var(--border);
   border-left: 1px solid var(--border);
   white-space: nowrap; overflow: hidden;
-  position: sticky; top: 0; z-index: 2;
 }
 
 /* Day header */
@@ -206,26 +227,14 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
   height: 36px;
   border-bottom: 1px solid var(--border);
   border-left: 1px solid rgba(255,255,255,0.04);
-  position: sticky; top: 20px; z-index: 2;
 }
 .tl-day-num { font-size: 10px; color: var(--text); line-height: 1.2; }
 .tl-dow     { font-size: 9px; color: var(--muted); text-transform: uppercase; }
 
 .tl-day-header.day-highlight { background: rgba(59,130,246,0.07); }
 .tl-day-header.day-today .tl-day-num,
-.tl-day-header.day-today .tl-dow { color: var(--red); }
-.tl-day-header.day-today { border-left: 2px solid var(--red); }
-
-/* Member name cell */
-.tl-member-name {
-  background: var(--bg);
-  position: sticky; left: 0; z-index: 1;
-  padding: 0 8px; height: 28px;
-  display: flex; align-items: center;
-  font-size: 12px;
-  border-bottom: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-}
+.tl-day-header.day-today .tl-dow { color: var(--green); }
+.tl-day-header.day-today { border-left: 2px solid var(--green); }
 
 /* Background day cell per member row */
 .tl-bg-cell {
@@ -234,19 +243,19 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
   border-left: 1px solid rgba(255,255,255,0.03);
 }
 .tl-bg-cell.day-highlight { background: rgba(59,130,246,0.05); }
-.tl-bg-cell.day-today { border-left: 2px solid rgba(239,68,68,0.25); }
+.tl-bg-cell.day-today { border-left: 2px solid rgba(34,197,94,0.3); }
 
 /* Vacation bar */
 .tl-bar {
   height: 20px; margin: 4px 2px;
-  background: rgba(34,197,94,0.2);
-  border: 1px solid rgba(34,197,94,0.6);
+  background: rgba(249,115,22,0.2);
+  border: 1px solid rgba(249,115,22,0.6);
   border-radius: 3px;
   z-index: 2; position: relative;
   display: flex; align-items: center;
   padding: 0 5px;
-  font-size: 10px; color: var(--green);
+  font-size: 10px; color: var(--orange);
   white-space: nowrap; overflow: hidden;
   cursor: default;
 }
-.tl-bar:hover { background: rgba(34,197,94,0.35); }
+.tl-bar:hover { background: rgba(249,115,22,0.35); }
