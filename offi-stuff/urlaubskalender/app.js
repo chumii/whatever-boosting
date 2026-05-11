@@ -88,15 +88,15 @@ function renderAll() {
 
 // ── Timeline ──────────────────────────────────────────────────────────────
 
-const DAYS  = 60;  // ~2 Monate
-const COL_W = 26;  // px per day column
+let   tlDays = 90;  // dynamisch über Select
+const COL_W  = 26;  // px per day column
 
 function renderTimeline() {
   const todayStr  = today();
   const t0        = addDays(todayStr, -7);
-  const windowEnd = addDays(t0, DAYS - 1);
+  const windowEnd = addDays(t0, tlDays - 1);
 
-  const days = Array.from({ length: DAYS }, (_, i) => addDays(t0, i));
+  const days = Array.from({ length: tlDays }, (_, i) => addDays(t0, i));
 
   const activeMembers = state.members.filter((m) =>
     state.vacations.some(
@@ -109,14 +109,29 @@ function renderTimeline() {
 
   names.innerHTML = "";
   grid.innerHTML  = "";
-  grid.style.gridTemplateColumns = `repeat(${DAYS}, ${COL_W}px)`;
+  grid.style.gridTemplateColumns = `repeat(${tlDays}, ${COL_W}px)`;
 
   // ── Names column (outside scroll) ──────────────────────────────────────
 
-  names.append(el("div", "tl-name-spacer-fixed"));
+  const spacer = el("div", "tl-name-spacer-fixed");
+  const rangeSelect = document.createElement("select");
+  rangeSelect.className = "tl-range-select";
+  rangeSelect.innerHTML = `
+    <option value="30">1 Monat</option>
+    <option value="60">2 Monate</option>
+    <option value="90">3 Monate</option>
+    <option value="180">6 Monate</option>`;
+  rangeSelect.value = String(tlDays);
+  rangeSelect.addEventListener("change", () => {
+    tlDays = Number(rangeSelect.value);
+    renderTimeline();
+  });
+  spacer.append(rangeSelect);
+  names.append(spacer);
+
   activeMembers.forEach((member) => {
-    const nameEl    = el("div", "tl-member-name", member.name);
-    const hasRight  = state.vacations.some(
+    const nameEl   = el("div", "tl-member-name", member.name);
+    const hasRight = state.vacations.some(
       (v) => v.member_id === member.id && v.end_date > windowEnd
     );
     if (hasRight) nameEl.append(el("span", "tl-overflow-hint", "›"));
@@ -127,11 +142,11 @@ function renderTimeline() {
 
   let col = 1;
   let i   = 0;
-  while (i < DAYS) {
+  while (i < tlDays) {
     const d         = new Date(days[i] + "T12:00:00");
     const thisMonth = d.getMonth();
     let span        = 1;
-    while (i + span < DAYS) {
+    while (i + span < tlDays) {
       if (new Date(days[i + span] + "T12:00:00").getMonth() !== thisMonth) break;
       span++;
     }
@@ -180,8 +195,8 @@ function renderTimeline() {
         const startIdx = daysBetween(t0, vac.start_date);
         const endIdx   = daysBetween(t0, vac.end_date);
         const clampS   = Math.max(0, startIdx);
-        const clampE   = Math.min(DAYS - 1, endIdx);
-        if (clampS >= DAYS || clampE < 0) return;
+        const clampE   = Math.min(tlDays - 1, endIdx);
+        if (clampS >= tlDays || clampE < 0) return;
 
         const bar = el("div", vac.is_preliminary ? "tl-bar tl-bar--preliminary" : "tl-bar", vac.note || "");
         bar.style.cssText = `grid-column:${clampS + 1}/span ${clampE - clampS + 1}; grid-row:${row};`;

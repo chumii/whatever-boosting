@@ -200,7 +200,15 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
   background: var(--surface);
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
 }
+.tl-range-select {
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  border-radius: 4px; color: var(--text); font-size: 11px;
+  padding: 3px 6px; cursor: pointer; outline: none;
+  width: calc(100% - 16px);
+}
+.tl-range-select:hover { border-color: var(--muted); }
 .tl-member-name {
   height: 28px; padding: 0 8px;
   display: flex; align-items: center;
