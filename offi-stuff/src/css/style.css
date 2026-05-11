@@ -149,6 +149,25 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
 .action-btn:hover { color: var(--text); background: var(--surface-2); }
 .action-btn.danger:hover { color: var(--red); }
 
+/* ── Pagination ───────────────────────────────────────────────────────── */
+
+.pagination {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 12px; font-size: 12px;
+}
+.pagination button {
+  background: none; border: 1px solid var(--border-strong);
+  border-radius: 4px; color: var(--text); cursor: pointer;
+  padding: 2px 8px; font-size: 12px;
+}
+.pagination button:disabled { opacity: 0.25; cursor: default; }
+.pagination button:not(:disabled):hover { background: var(--surface-2); }
+.pagination-info { color: var(--muted); }
+
+/* ── Past vacation rows ───────────────────────────────────────────────── */
+
+.data-table tr.row--past td { color: var(--muted); }
+
 /* ── Dialog ───────────────────────────────────────────── */
 
 .dialog {

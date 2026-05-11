@@ -222,20 +222,37 @@ function renderTimeline() {
 
 // ── Vacations table ───────────────────────────────────────────────────────
 
+const VAC_PAGE_SIZE = 20;
+let vacPage = 0;
+
 function memberName(id) {
   return state.members.find((m) => m.id === id)?.name ?? "—";
 }
 
+function initVacPage() {
+  const todayStr = today();
+  const sorted = [...state.vacations].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const firstCurrentIdx = sorted.findIndex((v) => v.end_date >= todayStr);
+  if (firstCurrentIdx < 0) {
+    vacPage = Math.max(0, Math.ceil(sorted.length / VAC_PAGE_SIZE) - 1);
+  } else {
+    vacPage = Math.floor(firstCurrentIdx / VAC_PAGE_SIZE);
+  }
+}
+
 function renderVacationsTable() {
+  const todayStr  = today();
+  const sorted    = [...state.vacations].sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const totalPages = Math.max(1, Math.ceil(sorted.length / VAC_PAGE_SIZE));
+  vacPage = Math.min(vacPage, totalPages - 1);
+
   const tbody = $("#vacations-table tbody");
   tbody.innerHTML = "";
 
-  const sorted = [...state.vacations].sort(
-    (a, b) => a.start_date.localeCompare(b.start_date)
-  );
-
-  sorted.forEach((vac) => {
+  sorted.slice(vacPage * VAC_PAGE_SIZE, (vacPage + 1) * VAC_PAGE_SIZE).forEach((vac) => {
+    const isPast = vac.end_date < todayStr;
     const tr = document.createElement("tr");
+    if (isPast) tr.className = "row--past";
     tr.innerHTML = `
       <td>${memberName(vac.member_id)}</td>
       <td>${fmtDate(vac.start_date)}</td>
@@ -247,6 +264,24 @@ function renderVacationsTable() {
       </td>`;
     tbody.append(tr);
   });
+
+  const pag = document.getElementById("vacations-pagination");
+  pag.innerHTML = "";
+  if (totalPages > 1) {
+    const prev = document.createElement("button");
+    prev.textContent = "←";
+    prev.disabled = vacPage === 0;
+    prev.addEventListener("click", () => { vacPage--; renderVacationsTable(); });
+
+    const info = el("span", "pagination-info", `${vacPage + 1} / ${totalPages}`);
+
+    const next = document.createElement("button");
+    next.textContent = "→";
+    next.disabled = vacPage === totalPages - 1;
+    next.addEventListener("click", () => { vacPage++; renderVacationsTable(); });
+
+    pag.append(prev, info, next);
+  }
 }
 
 // ── Absent raid days ──────────────────────────────────────────────────────
@@ -395,6 +430,7 @@ async function init() {
   setupDialogClosers();
   setupVacationCrud();
   await loadAll();
+  initVacPage();
   renderAll();
   setupRealtime();
 }
