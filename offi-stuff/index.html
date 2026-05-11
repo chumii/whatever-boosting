@@ -29,17 +29,42 @@
       <aside class="sidebar">
         <a class="sidebar-link active" href="/offi-stuff/">Übersicht</a>
         <a class="sidebar-link" href="/offi-stuff/urlaubskalender/">Urlaubskalender</a>
-        <a class="sidebar-link" href="/offi-stuff/mitglieder/">Mitglieder</a>
       </aside>
       <main>
-        <p class="muted">Wähle einen Bereich aus der Seitenleiste.</p>
+        <div class="card">
+          <div class="card-header">
+            <h2>Mitglieder</h2>
+            <button class="btn btn-primary btn-with-icon" id="new-member-btn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span>Mitglied</span>
+            </button>
+          </div>
+          <table class="data-table" id="members-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Discord</th>
+                <th class="actions"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </main>
     </div>
 
-    <script type="module">
-      import { installGate } from './src/js/gate.js';
-      import { PASSWORD } from './src/js/config.js';
-      installGate({ password: PASSWORD });
-    </script>
+    <dialog id="member-dialog" class="dialog">
+      <form method="dialog" data-form="member">
+        <h2 data-title>Mitglied hinzufügen</h2>
+        <label>Name<input name="name" required /></label>
+        <label>Discord<input name="discord_name" placeholder="optional" /></label>
+        <div class="dialog-actions">
+          <button type="button" data-close>Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Speichern</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
