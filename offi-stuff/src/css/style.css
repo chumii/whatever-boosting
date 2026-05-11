@@ -114,7 +114,11 @@ main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
 }
 .card-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
 .card-header--actions-only { justify-content: flex-end; }
-.card-header .pagination { margin-bottom: 0; }
+.card-header .pagination {
+  margin-bottom: 0;
+  position: absolute; left: 50%; transform: translateX(-50%);
+}
+.card-header:has(.pagination) { position: relative; }
 
 /* ── Buttons ──────────────────────────────────────────── */
 
