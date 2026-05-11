@@ -1,9 +1,11 @@
-# Whatever Boosting — Project Context
+# Whatever Guild — Project Context
 
 ## What is this?
 
-A private internal web app for a WoW guild that participates in a Mythic+ Boosting Community.
-The app manages guild members, their characters, and generates formatted boost strings for posting in a Discord channel.
+A private internal guild dashboard for a WoW guild. It is structured as a multi-module app: the root `/` shows a landing page with links to each module, and each module lives at its own subpath.
+
+**Modules:**
+- `/boosting/` — Boost-String-Generator and character database for the guild's Mythic+ boosting activity
 
 ## Tech Stack
 
@@ -22,20 +24,25 @@ SUPABASE_ANON_KEY=<publishable key from Supabase>
 These are set in Vercel. For local development, create a `.env.local` file (already in `.gitignore`).
 
 > **Note**: Vanilla JS has no build step, so env vars are NOT auto-injected.
-> Store them in `src/js/config.js` (gitignored) for local dev.
+> Store them in `boosting/src/js/config.js` (gitignored) for local dev.
 > The publishable key is safe to expose client-side per Supabase docs (RLS is enabled).
 
 ## File Structure
 
 ```
-whatever-boosting/
-├── index.html          # Main entry point
-├── src/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       ├── supabase.js # Supabase client init + all DB functions
-│       └── app.js      # UI logic, event handlers, string generation
+whatever-guild/
+├── index.html              # Landing page — links to all modules
+├── boosting/
+│   ├── index.html          # Boosting module entry point
+│   └── src/
+│       ├── css/
+│       │   └── style.css
+│       └── js/
+│           ├── supabase.js # Supabase client init + all DB functions
+│           └── app.js      # UI logic, event handlers, string generation
+├── scripts/
+│   └── build-config.js     # Vercel build step: writes boosting/src/js/config.js
+├── addon/                  # WoW addon (WhateverBoosting — name unchanged)
 ├── .gitignore
 └── README.md
 ```

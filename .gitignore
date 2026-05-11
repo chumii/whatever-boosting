@@ -1,4 +1,4 @@
 .env
 .env.local
 .DS_Store
-src/js/config.js
+boosting/src/js/config.js

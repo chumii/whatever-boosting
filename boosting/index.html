@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Whatever Guild — Boosting</title>
+    <link rel="stylesheet" href="src/css/style.css" />
+  </head>
+  <body>
+    <nav class="topnav">
+      <a class="topnav-brand" href="/">Whatever Guild</a>
+      <div class="topnav-links">
+        <a class="topnav-link active" href="/boosting/">Boosting</a>
+      </div>
+    </nav>
+    <aside class="sidebar">
+      <nav>
+        <a href="#generator" data-view="generator" class="nav-link active">Magic</a>
+        <a href="#database" data-view="database" class="nav-link">Datenbank</a>
+      </nav>
+      <div class="sidebar-section">
+        <div class="sidebar-header">Server</div>
+        <div class="server-options">
+          <label class="server-option"><input type="radio" name="server" value="sylvanas" checked> Sylvanas</label>
+          <label class="server-option"><input type="radio" name="server" value="garona"> Garona</label>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-header">Optionen</div>
+        <div class="sidebar-checkboxes">
+          <label class="sidebar-checkbox"><input type="checkbox" id="opt-discord-name" checked> @name</label>
+          <label class="sidebar-checkbox"><input type="checkbox" id="opt-code-block" checked> Codeblock</label>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-header">Addon</div>
+        <a class="sidebar-download disabled" title="needs fix" aria-disabled="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Download Addon</span>
+        </a>
+      </div>
+    </aside>
+
+    <main>
+      <section id="view-generator" class="view">
+        <div class="generator-layout">
+          <div class="generator-main">
+            <div class="card">
+              <div class="generator-controls">
+                <div class="slot">
+                  <label>Spieler 1</label>
+                  <select data-slot="0"><option value="">—</option></select>
+                </div>
+                <div class="slot">
+                  <label>Spieler 2</label>
+                  <select data-slot="1"><option value="">—</option></select>
+                </div>
+                <div class="slot">
+                  <label>Spieler 3</label>
+                  <select data-slot="2"><option value="">—</option></select>
+                </div>
+                <div class="slot">
+                  <label>Spieler 4</label>
+                  <select data-slot="3"><option value="">—</option></select>
+                </div>
+              </div>
+              <div class="generator-action">
+                <button id="generate-btn" class="btn btn-primary btn-lg">Hokuspokus</button>
+              </div>
+              <textarea id="generator-output" class="output" rows="10" readonly placeholder="Ausgabe erscheint hier…"></textarea>
+              <div class="output-actions">
+                <button id="copy-btn" class="btn btn-icon" title="Kopieren" aria-label="Kopieren">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+                <span id="copy-status" class="muted small"></span>
+                <button id="clear-btn" class="btn btn-icon btn-danger-hover" style="margin-left:auto" title="Leeren" aria-label="Leeren">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+                </button>
+              </div>
+
+              <label class="output-label">Discord-Namen</label>
+              <textarea id="discord-output" class="output" rows="1" readonly placeholder="Discord-Namen erscheinen hier…"></textarea>
+              <div class="output-actions">
+                <button id="copy-discord-btn" class="btn btn-icon" title="Kopieren" aria-label="Kopieren">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+                <span id="copy-discord-status" class="muted small"></span>
+              </div>
+
+              <label class="output-label">Übersicht</label>
+              <div id="overview" class="overview"></div>
+            </div>
+          </div>
+          <div id="teams" class="generator-aside"></div>
+        </div>
+      </section>
+
+      <section id="view-database" class="view hidden">
+        <header class="view-header">
+          <h1>Database</h1>
+          <div class="tabs">
+            <button class="tab active" data-tab="players">Players &amp; Characters</button>
+            <button class="tab" data-tab="seasons">Seasons</button>
+            <button class="tab" data-tab="dungeons">Dungeons</button>
+            <button class="tab" data-tab="classes">Classes</button>
+          </div>
+        </header>
+
+        <section id="tab-players" class="tab-panel">
+          <div class="card">
+            <div class="card-header">
+              <h2>Players</h2>
+              <button id="new-player-btn" class="btn btn-primary btn-with-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <span>Player</span>
+              </button>
+            </div>
+            <table id="players-table" class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Discord</th>
+                  <th>Characters</th>
+                  <th class="actions"></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Characters</h2>
+              <div style="display:flex;gap:6px;align-items:center">
+                <select id="characters-player-filter" class="filter-select">
+                  <option value="">All players</option>
+                </select>
+                <button id="import-characters-btn" class="btn btn-with-icon" title="Import from WoW addon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Import</span>
+                </button>
+                <button id="new-character-btn" class="btn btn-primary btn-with-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                  <span>Charakter</span>
+                </button>
+              </div>
+            </div>
+            <table id="characters-table" class="data-table">
+              <thead>
+                <tr>
+                  <th data-sort="player">Player</th>
+                  <th class="center" data-sort="is_active">Active</th>
+                  <th data-sort="name">Name</th>
+                  <th data-sort="class">Class</th>
+                  <th data-sort="armor_type">Armor</th>
+                  <th data-sort="main_role">Main</th>
+                  <th data-sort="off_role">Off</th>
+                  <th class="center" data-sort="key_active">Key Active</th>
+                  <th data-sort="current_key_dungeon">Key</th>
+                  <th data-sort="current_key_level">Lvl</th>
+                  <th data-sort="rating">Rating</th>
+                  <th data-sort="item_level">iLvl</th>
+                  <th class="actions"></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="tab-seasons" class="tab-panel hidden">
+          <div class="card">
+            <div class="card-header">
+              <h2>Seasons</h2>
+              <button id="new-season-btn" class="btn btn-primary btn-with-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <span>Season</span>
+              </button>
+            </div>
+            <table id="seasons-table" class="data-table">
+              <thead><tr><th>Name</th><th>Current</th><th class="actions"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="tab-dungeons" class="tab-panel hidden">
+          <div class="card">
+            <div class="card-header">
+              <h2>Dungeons</h2>
+              <button id="new-dungeon-btn" class="btn btn-primary btn-with-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <span>Dungeon</span>
+              </button>
+            </div>
+            <table id="dungeons-table" class="data-table">
+              <thead><tr><th data-sort="season">Season</th><th data-sort="name">Name</th><th data-sort="alias">Alias</th><th class="actions"></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="tab-classes" class="tab-panel hidden">
+          <div class="card">
+            <div class="card-header">
+              <h2>WoW Classes</h2>
+              <span class="muted small">Reference data — usually no edits needed.</span>
+            </div>
+            <table id="classes-table" class="data-table">
+              <thead><tr><th>Name</th><th>Color</th><th>Armor</th><th>Tank</th><th>Heal</th><th>DPS</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="player-dialog" class="dialog">
+      <form method="dialog" data-form="player">
+        <h2 id="player-dialog-title">New player</h2>
+        <label>Name<input name="name" required /></label>
+        <label>Discordtag - NICHT Server-Nickname<input name="discord_name" /></label>
+        <div class="dialog-actions">
+          <button type="button" data-close>Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="character-dialog" class="dialog">
+      <form method="dialog" data-form="character">
+        <h2 id="character-dialog-title">New character</h2>
+        <label>Player<select name="player_id" required></select></label>
+        <label>Name<input name="name" required /></label>
+        <label>Class<select name="class" required></select></label>
+        <label>Armor<input name="armor_type_display" disabled /></label>
+        <label>Main role<select name="main_role"><option>Tank</option><option>Heal</option><option>Dps</option></select></label>
+        <label>Off role<select name="off_role"><option value="">—</option><option>Tank</option><option>Heal</option><option>Dps</option></select></label>
+        <label>Current key dungeon<select name="current_key_dungeon"><option value="">—</option></select></label>
+        <label>Current key level<input name="current_key_level" type="number" min="0" /></label>
+        <label>Rating<input name="rating" type="number" min="0" /></label>
+        <label>Item level<input name="item_level" type="number" step="0.1" min="0" /></label>
+        <div class="dialog-actions">
+          <button type="button" data-close>Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="season-dialog" class="dialog">
+      <form method="dialog" data-form="season">
+        <h2 id="season-dialog-title">New season</h2>
+        <label>Name<input name="name" required /></label>
+        <label class="checkbox"><input name="is_current" type="checkbox" /> Current season</label>
+        <div class="dialog-actions">
+          <button type="button" data-close>Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="dungeon-dialog" class="dialog">
+      <form method="dialog" data-form="dungeon">
+        <h2 id="dungeon-dialog-title">New dungeon</h2>
+        <label>Season<select name="season_id" required></select></label>
+        <label>Name<input name="name" required /></label>
+        <label>Alias<input name="alias" /></label>
+        <div class="dialog-actions">
+          <button type="button" data-close>Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="import-characters-dialog" class="dialog import-dialog">
+      <div class="import-body">
+        <h2>Import from Addon</h2>
+        <label>Player
+          <select id="import-player-select"></select>
+        </label>
+        <div>
+          <label>Export string
+            <textarea id="import-paste-input" rows="3" placeholder="WB1|…"></textarea>
+          </label>
+          <div class="import-status-row">
+            <span id="import-decode-status" class="import-status"></span>
+            <button type="button" id="import-decode-btn" class="btn" style="margin-left:auto;flex-shrink:0">Decode</button>
+          </div>
+        </div>
+        <div id="import-preview" class="hidden">
+          <div class="import-preview-scroll">
+            <table id="import-preview-table" class="data-table">
+              <thead>
+                <tr>
+                  <th class="center"><input type="checkbox" id="import-check-all" checked></th>
+                  <th>Name</th>
+                  <th>Class</th>
+                  <th>Main</th>
+                  <th>Off</th>
+                  <th>Dungeon</th>
+                  <th class="num">Key</th>
+                  <th class="num">Rating</th>
+                  <th class="num">iLvl</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" data-close>Cancel</button>
+          <button type="button" id="import-confirm-btn" class="btn-primary" disabled>Import</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script type="module" src="src/js/app.js"></script>
+  </body>
+</html>
