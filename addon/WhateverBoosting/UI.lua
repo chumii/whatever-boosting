@@ -289,6 +289,7 @@ local function buildMainFrame()
     scrollFrame:SetScrollChild(content)
 
     mainFrame.scrollContent = content
+    tinsert(UISpecialFrames, "WBMainFrame")
 end
 
 function WB.ToggleUI()

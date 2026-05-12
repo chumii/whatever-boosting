@@ -34,7 +34,8 @@ local enabled     = true  -- default on; overridden by SavedVariables on ADDON_L
 local keyLevel    = 0
 local targetLevel = 0
 local onHover     = false
-local locked      = false   -- true while waiting for BAG_UPDATE after a trade
+local locked      = false     -- true while waiting for BAG_UPDATE after a trade
+local transiting  = false     -- true between DONE_TEXT unlock and next BAG_UPDATE(lv>0)
 local bindActive  = false
 local built       = false
 
@@ -75,10 +76,6 @@ end
 
 local function syncBinding()
     setBinding(onHover and not locked)
-end
-
-local function dbg(msg)
-    DEFAULT_CHAT_FRAME:AddMessage("|cff888888[KT]|r " .. msg)
 end
 
 local function updateDisplay()
@@ -248,10 +245,13 @@ ev:SetScript("OnEvent", function(_, event, arg1)
 
     elseif event == "BAG_UPDATE_DELAYED" then
         local lv = readKeyLevel()
-        dbg(string.format("BAG lv=%d kl=%d tl=%d locked=%s", lv, keyLevel, targetLevel, tostring(locked)))
-        if lv ~= keyLevel and not (lv == 0 and locked) then
-            keyLevel = lv
-            locked   = false
+        if lv == 0 and (locked or transiting) then
+            return
+        end
+        if lv ~= keyLevel then
+            transiting = false
+            keyLevel   = lv
+            locked     = false
             if keyLevel == 0 then
                 targetLevel = 0
                 hideAll()
@@ -261,39 +261,42 @@ ev:SetScript("OnEvent", function(_, event, arg1)
                 syncBinding()
                 updateDisplay()
             end
-            dbg(string.format("  → kl=%d tl=%d onHover=%s", keyLevel, targetLevel, tostring(onHover)))
+        else
+            transiting = false
         end
         refresh()
 
     elseif event == "GOSSIP_SHOW" then
         if targetNpcId() ~= NPC_ID then return end
 
+        -- Refresh keyLevel from game state — may lag behind actual level when
+        -- scrolling faster than BAG_UPDATE_DELAYED fires.
+        local freshLv = readKeyLevel()
+        if freshLv > 0 then keyLevel = freshLv end
+
         local gossipText = C_GossipInfo.GetText() or ""
-        dbg(string.format("GOSSIP kl=%d tl=%d locked=%s text='%s'", keyLevel, targetLevel, tostring(locked), gossipText:sub(1,30)))
 
         if gossipText == GOSSIP_DONE_TEXT then
             C_GossipInfo.CloseGossip()
-            dbg("  → done text, closing")
+            locked     = false
+            transiting = true
+            if built and iconArea then onHover = iconArea:IsMouseOver() end
+            syncBinding()
             return
         end
 
         if keyLevel <= targetLevel then
             C_GossipInfo.CloseGossip()
-            dbg("  → at target, closing gossip")
             return
         end
 
-        if locked then
-            dbg("  → locked, ignoring")
-            return
-        end
+        if locked then return end
 
         local opts = C_GossipInfo.GetOptions()
         for _, opt in ipairs(opts) do
             if opt.name == GOSSIP_DOWNGRADE then
                 locked = true
                 syncBinding()
-                dbg("  → selecting downgrade")
                 C_GossipInfo.SelectOption(opt.gossipOptionID, nil, true)
                 return
             end
