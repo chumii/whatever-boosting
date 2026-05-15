@@ -34,7 +34,8 @@ function buildMainMap(characters) {
 export function aggregateStats(sessions, characters) {
   const mainMap = buildMainMap(characters);
 
-  const leaderboard = {};
+  // leaderboardMap: mainId → { net, chars: { charId → net } }
+  const leaderboardMap = {};
   let totalSessions = 0;
   let totalRounds   = 0;
   let totalVolume   = 0;  // sum of all payouts (one-sided)
@@ -54,7 +55,9 @@ export function aggregateStats(sessions, characters) {
 
     for (const [charId, net] of Object.entries(lb)) {
       const key = mainMap[charId] ?? charId;
-      leaderboard[key] = (leaderboard[key] ?? 0) + net;
+      if (!leaderboardMap[key]) leaderboardMap[key] = { net: 0, chars: {} };
+      leaderboardMap[key].net += net;
+      leaderboardMap[key].chars[charId] = (leaderboardMap[key].chars[charId] ?? 0) + net;
     }
 
     // Biggest single payout from any round
@@ -65,9 +68,15 @@ export function aggregateStats(sessions, characters) {
     }
   }
 
-  // Sort leaderboard descending by net gold
-  const sorted = Object.entries(leaderboard)
-    .map(([id, net]) => ({ id, net }))
+  // Sort leaderboard descending by net gold; include per-char breakdown sorted the same way
+  const sorted = Object.entries(leaderboardMap)
+    .map(([id, { net, chars }]) => ({
+      id,
+      net,
+      chars: Object.entries(chars)
+        .map(([cid, n]) => ({ id: cid, net: n }))
+        .sort((a, b) => b.net - a.net),
+    }))
     .sort((a, b) => b.net - a.net);
 
   return { totalSessions, totalRounds, totalVolume, biggestPayout, byGameType, leaderboard: sorted };
