@@ -17,18 +17,22 @@ function toTimestamp(unix) {
 }
 
 async function processCharacters(characters, exportedAt) {
-  for (const c of characters) {
-    if (!c.characterId) continue;
-    await upsertCharacter({
-      character_id:   c.characterId,
-      name:           c.name,
-      realm:          c.realm,
-      character_type: c.characterType || "unlinked",
-      main_character: c.mainCharacter || null,
-      last_export_at: toTimestamp(exportedAt),
-      updated_at:     new Date().toISOString(),
-    });
-  }
+  const toRow = (c) => ({
+    character_id:   c.characterId,
+    name:           c.name,
+    realm:          c.realm,
+    character_type: c.characterType || "unlinked",
+    main_character: c.mainCharacter || null,
+    last_export_at: toTimestamp(exportedAt),
+    updated_at:     new Date().toISOString(),
+  });
+
+  // FK constraint: alts reference their main — insert non-alts first
+  const nonAlts = characters.filter(c => c.characterId && c.characterType !== "alt");
+  const alts    = characters.filter(c => c.characterId && c.characterType === "alt");
+
+  for (const c of nonAlts) await upsertCharacter(toRow(c));
+  for (const c of alts)    await upsertCharacter(toRow(c));
 }
 
 async function processSessions(sessions, exportedBy) {
