@@ -16,8 +16,9 @@ async function initLua() {
 
   const { lua, lauxlib, lualib, to_luastring, to_jsstring } = window.fengari;
 
-  L = lauxlib.luaL_newstate();
-  lualib.luaL_openlibs(L);
+  // Create state in a local var — only assign to L on full success
+  const state = lauxlib.luaL_newstate();
+  lualib.luaL_openlibs(state);
 
   const sources = await Promise.all(LUA_FILES.map(url =>
     fetch(url).then(r => {
@@ -27,13 +28,15 @@ async function initLua() {
   ));
 
   for (let i = 0; i < sources.length; i++) {
-    const rc = lauxlib.luaL_dostring(L, to_luastring(sources[i]));
+    const rc = lauxlib.luaL_dostring(state, to_luastring(sources[i]));
     if (rc !== lua.LUA_OK) {
-      const msg = to_jsstring(lua.lua_tostring(L, -1));
-      lua.lua_pop(L, 1);
+      const msg = to_jsstring(lua.lua_tostring(state, -1));
+      lua.lua_pop(state, 1);
       throw new Error(`${LUA_FILES[i]}: ${msg}`);
     }
   }
+
+  L = state;  // only set on success — failed init remains retryable
 }
 
 // Lua wrapper: reads WR_RAW_BYTES global, deserializes, encodes to JSON string.
@@ -55,7 +58,7 @@ export async function deserialize(decompressed) {
   const { lua, lauxlib, to_luastring, to_jsstring } = window.fengari;
 
   // Pass decompressed bytes as a Lua string global
-  lua.lua_pushlstring(L, decompressed, decompressed.length);
+  lua.lua_pushlstring(L, decompressed, decompressed.byteLength);
   lua.lua_setglobal(L, to_luastring("WR_RAW_BYTES"));
 
   const rc = lauxlib.luaL_dostring(L, to_luastring(DESERIALIZE_LUA));

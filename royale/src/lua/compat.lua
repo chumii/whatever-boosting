@@ -2,9 +2,10 @@
 -- Load this before LibStub / LibSerialize to patch missing globals.
 
 -- In Lua 5.1 (WoW), unpack is a global; in 5.3 it moved to table.unpack
-if not unpack then
-  unpack = table.unpack
-end
+if not unpack then unpack = table.unpack end
+
+-- Lua 5.1 loadstring → Lua 5.3 load
+if not loadstring then loadstring = load end
 
 -- LuaJIT's "bit" library — emulate with Lua 5.3 bitwise operators
 if not bit then
@@ -12,7 +13,7 @@ if not bit then
     band    = function(a, b, ...) local r = a & b; if ... then return bit.band(r, ...) end return r end,
     bor     = function(a, b, ...) local r = a | b; if ... then return bit.bor(r, ...)  end return r end,
     bxor    = function(a, b, ...) local r = a ~ b; if ... then return bit.bxor(r, ...) end return r end,
-    bnot    = function(a)  return ~a end,
+    bnot    = function(a)    return ~a end,
     lshift  = function(a, n) return a << n end,
     rshift  = function(a, n) return a >> n end,
     arshift = function(a, n) return a >> n end,
@@ -21,7 +22,29 @@ if not bit then
   }
 end
 
--- Lua 5.1 loadstring → Lua 5.3 load
-if not loadstring then
-  loadstring = load
+-- WoW global string aliases (strmatch, strbyte, etc.)
+strmatch  = string.match
+strfind   = string.find
+strsub    = string.sub
+strrep    = string.rep
+strbyte   = string.byte
+strchar   = string.char
+strupper  = string.upper
+strlower  = string.lower
+strlen    = string.len
+strformat = string.format
+strrev    = string.reverse
+
+-- WoW table aliases
+tinsert = table.insert
+tremove = table.remove
+tsort   = table.sort
+tconcat = table.concat
+
+-- WoW's wipe() — clears a table in place
+if not wipe then
+  wipe = function(t)
+    for k in pairs(t) do t[k] = nil end
+    return t
+  end
 end
