@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Whatever — Whatever Royale</title>
+    <link rel="stylesheet" href="src/css/style.css" />
+  </head>
+  <body>
+    <nav class="topnav">
+      <a class="topnav-brand" href="/">Whatever</a>
+      <div class="topnav-links">
+        <a class="topnav-link" href="/boosting/">Boosting</a>
+        <a class="topnav-link" href="/offi-stuff/">Offizeug</a>
+        <a class="topnav-link active" href="/royale/">Whatever Royale</a>
+      </div>
+    </nav>
+
+    <main>
+      <div id="summary-grid" class="stat-grid">
+        <div class="stat-cell">
+          <div class="stat-label">Sessions</div>
+          <div class="stat-value mono" id="stat-sessions">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Runden</div>
+          <div class="stat-value mono" id="stat-rounds">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Gold-Volumen</div>
+          <div class="stat-value gold" id="stat-volume">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Größte Auszahlung</div>
+          <div class="stat-value gold" id="stat-biggest">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 id="leaderboard-heading">Rangliste</h2>
+          <button class="btn btn-primary" id="refresh-btn">Aktualisieren</button>
+        </div>
+        <table class="data-table" id="leaderboard-table">
+          <thead>
+            <tr>
+              <th class="rank">#</th>
+              <th>Spieler</th>
+              <th class="num">Netto-Gold</th>
+              <th class="num">Gewonnen</th>
+              <th class="num">Verloren</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 id="sessions-heading">Sessions</h2>
+          <a class="btn btn-primary" href="/royale/import/">Import</a>
+        </div>
+        <table class="data-table" id="sessions-table">
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Typ</th>
+              <th>Host</th>
+              <th class="num">Runden</th>
+              <th class="num">Auszahlung</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

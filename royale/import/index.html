@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Whatever Royale — Import</title>
+    <link rel="stylesheet" href="../src/css/style.css" />
+    <!-- fengari-web Lua VM (must load before app.js ES module) -->
+    <script src="https://cdn.jsdelivr.net/npm/fengari-web/dist/fengari-web.js"></script>
+    <!-- pako for deflate decompression -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2/dist/pako.min.js"></script>
+  </head>
+  <body>
+    <nav class="topnav">
+      <a class="topnav-brand" href="/">Whatever</a>
+      <div class="topnav-links">
+        <a class="topnav-link" href="/boosting/">Boosting</a>
+        <a class="topnav-link" href="/offi-stuff/">Offizeug</a>
+        <a class="topnav-link active" href="/royale/">Whatever Royale</a>
+      </div>
+    </nav>
+
+    <div id="gate">
+      <div class="gate-box">
+        <div class="gate-label">Passwort</div>
+        <div class="gate-row">
+          <input class="gate-input" id="pw-input" type="password" autocomplete="current-password" />
+          <button class="gate-btn" id="pw-btn">OK</button>
+        </div>
+        <div class="gate-error" id="pw-error"></div>
+      </div>
+    </div>
+
+    <div id="content" style="display:none">
+      <main>
+        <div class="card">
+          <div class="card-header">
+            <h2>Export importieren</h2>
+            <a class="btn" href="/royale/">← Zurück zur Statistik</a>
+          </div>
+          <div class="import-area">
+            <p class="muted" style="margin:0 0 4px">
+              Export-String aus dem WhateverRoyale-Addon einfügen (<code>WR1!</code> oder <code>WRC1!</code>):
+            </p>
+            <textarea
+              class="import-textarea"
+              id="export-input"
+              placeholder="WR1!aAbB… oder WRC1!aAbB…"
+              spellcheck="false"
+              autocomplete="off"
+            ></textarea>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn btn-primary btn-large" id="import-btn">Importieren</button>
+              <span class="import-status" id="import-status"></span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

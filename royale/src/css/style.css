@@ -1,0 +1,175 @@
+:root {
+  color-scheme: dark;
+  --bg:           #0a0a0a;
+  --surface:      #111111;
+  --surface-2:    #1a1a1a;
+  --border:       #222222;
+  --border-strong: #2e2e2e;
+  --text:         #ffffff;
+  --muted:        #888888;
+  --green:        #22c55e;
+  --red:          #ef4444;
+  --blue:         #3b82f6;
+  --gold:         #f5c518;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--bg); color: var(--text);
+  font: 13px/1.5 var(--font-sans);
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+.hidden { display: none !important; }
+.muted  { color: var(--muted); }
+.mono   { font-family: var(--font-mono); }
+.positive { color: var(--green); }
+.negative { color: var(--red); }
+
+/* ── Layout ───────────────────────────────────────────── */
+
+body {
+  display: grid;
+  grid-template-rows: 44px 1fr;
+  min-height: 100vh;
+}
+
+/* ── Topnav ───────────────────────────────────────────── */
+
+.topnav {
+  display: flex; align-items: center; gap: 24px;
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.topnav-brand { font-weight: 600; font-size: 13px; letter-spacing: -0.01em; }
+.topnav-brand:hover { color: var(--muted); }
+.topnav-links { display: flex; gap: 4px; }
+.topnav-link { padding: 5px 10px; border-radius: 4px; font-size: 13px; color: var(--muted); }
+.topnav-link:hover { color: var(--text); background: var(--surface-2); }
+.topnav-link.active { color: var(--text); background: var(--surface-2); }
+
+/* ── Main (no sidebar) ────────────────────────────────── */
+
+main {
+  padding: 24px 28px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  overflow-y: auto;
+}
+
+/* ── Gate ─────────────────────────────────────────────── */
+
+#gate {
+  display: flex; align-items: center; justify-content: center;
+  height: calc(100vh - 44px);
+}
+.gate-box { width: 280px; display: flex; flex-direction: column; gap: 12px; }
+.gate-label { font-size: 13px; color: var(--muted); }
+.gate-row { display: flex; gap: 8px; }
+.gate-input {
+  flex: 1; height: 32px; padding: 0 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); outline: none;
+}
+.gate-input:focus { border-color: var(--border-strong); }
+.gate-btn {
+  height: 32px; padding: 0 14px;
+  background: #1f1f1f; color: var(--text); border: 1px solid #3a3a3a; border-radius: 4px;
+  font: inherit; font-weight: 500; cursor: pointer;
+}
+.gate-btn:hover { background: #262626; border-color: #4a4a4a; }
+.gate-error { font-size: 12px; color: var(--red); min-height: 16px; }
+
+/* ── Card ─────────────────────────────────────────────── */
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 16px; margin-bottom: 16px;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card-header h2 { margin: 0; font-size: 14px; font-weight: 600; }
+
+/* ── Stat summary grid ────────────────────────────────── */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.stat-cell {
+  background: var(--surface); padding: 14px 16px;
+}
+.stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-value { font-size: 22px; font-weight: 600; font-family: var(--font-mono); line-height: 1.1; }
+.stat-value.gold { color: var(--gold); }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── Buttons ──────────────────────────────────────────── */
+
+.btn {
+  height: 28px; padding: 0 10px;
+  background: transparent; border: 1px solid var(--border-strong); border-radius: 4px;
+  cursor: pointer; font-size: 12px; color: var(--text);
+}
+.btn:hover { background: var(--surface-2); }
+.btn-primary {
+  background: #1f1f1f; color: var(--text);
+  border-color: #3a3a3a; font-weight: 500;
+}
+.btn-primary:hover { background: #262626; border-color: #4a4a4a; }
+.btn-large {
+  height: 34px; padding: 0 16px; font-size: 13px;
+}
+
+/* ── Table ────────────────────────────────────────────── */
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left; font-weight: 500; font-size: 12px;
+  padding: 6px 8px; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.data-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table .num { text-align: right; font-family: var(--font-mono); font-size: 12px; }
+.data-table .rank { color: var(--muted); font-size: 11px; width: 28px; }
+
+/* ── Import page ──────────────────────────────────────── */
+
+.import-area {
+  display: flex; flex-direction: column; gap: 12px;
+  max-width: 680px;
+}
+.import-textarea {
+  width: 100%; height: 120px; padding: 10px 12px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); resize: vertical; font-family: var(--font-mono); font-size: 12px;
+  outline: none;
+}
+.import-textarea:focus { border-color: var(--border-strong); }
+.import-status {
+  font-size: 13px; min-height: 20px;
+}
+.import-status.ok  { color: var(--green); }
+.import-status.err { color: var(--red); }
+.import-status.pending { color: var(--muted); }
+
+/* ── Empty state ──────────────────────────────────────── */
+
+.empty { text-align: center; padding: 32px 0; color: var(--muted); font-size: 13px; }
