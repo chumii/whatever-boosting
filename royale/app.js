@@ -195,6 +195,21 @@ function openSessionModal(row) {
 
 // ── Sessions table ───────────────────────────────────────────────────────────
 
+function getSessionStake(session, gameType) {
+  const rounds = Array.isArray(session.rounds)
+    ? session.rounds
+    : Object.values(session.rounds || {});
+  const round = rounds.find(r => r.status === "completed") ?? rounds[0];
+  if (!round) return null;
+  if (gameType === "simpleDice") {
+    return Object.values(round.rolls || {})[0]?.maxRoll ?? null;
+  }
+  if (gameType === "deathRoll") {
+    return round.results?.payoutAmount ?? null;
+  }
+  return null;
+}
+
 function renderSessions(sessions) {
   $("#sessions-heading").textContent = `Sessions (${sessions.length})`;
 
@@ -202,12 +217,14 @@ function renderSessions(sessions) {
   tbody.innerHTML = "";
 
   if (sessions.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">Noch keine Sessions importiert</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Noch keine Sessions importiert</td></tr>';
     return;
   }
 
   for (const row of sessions) {
-    const { totalRounds, totalPayouts } = computeSessionStats(row.raw_data || {});
+    const session = row.raw_data || {};
+    const { totalRounds, totalPayouts } = computeSessionStats(session);
+    const stake = getSessionStake(session, row.game_type);
     const tr = document.createElement("tr");
     tr.className = "clickable-row";
     tr.innerHTML = `
@@ -215,6 +232,7 @@ function renderSessions(sessions) {
       <td>${gameTypeLabel(row.game_type)}</td>
       <td class="muted">${stripRealm(row.host_character || "")}</td>
       <td class="num">${totalRounds}</td>
+      <td class="num muted">${stake !== null ? formatGoldPlain(stake) : "—"}</td>
       <td class="num gold">${formatGoldPlain(totalPayouts)}</td>
       <td class="detail-hint muted">›</td>`;
     tr.addEventListener("click", () => openSessionModal(row));
