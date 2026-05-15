@@ -83,16 +83,16 @@ export function aggregateStats(sessions, characters) {
 }
 
 export function formatGold(amount) {
-  if (amount === 0) return "0g";
+  if (amount === 0) return "0";
   const abs  = Math.abs(amount);
   const sign = amount < 0 ? "−" : "+";
-  if (abs >= 1000000) return sign + (abs / 1000000).toFixed(1) + "M g";
-  if (abs >= 1000)    return sign + (abs / 1000).toFixed(1) + "k g";
-  return sign + abs + " g";
+  if (abs >= 1000000) return sign + (abs / 1000000).toFixed(1) + "M";
+  if (abs >= 1000)    return sign + (abs / 1000).toFixed(1) + "k";
+  return sign + abs;
 }
 
 export function formatGoldPlain(amount) {
-  if (amount >= 1000000) return (amount / 1000000).toFixed(1) + "M g";
-  if (amount >= 1000)    return (amount / 1000).toFixed(1) + "k g";
-  return amount + " g";
+  if (amount >= 1000000) return (amount / 1000000).toFixed(1) + "M";
+  if (amount >= 1000)    return (amount / 1000).toFixed(1) + "k";
+  return String(amount);
 }
