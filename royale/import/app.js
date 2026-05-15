@@ -70,9 +70,10 @@ async function runImport() {
 
   let decompressed;
   try {
-    decompressed = pako.inflate(compressed);
+    // LibDeflate:CompressDeflate produces raw deflate (no zlib header) → inflateRaw
+    decompressed = pako.inflateRaw(compressed);
   } catch (e) {
-    setStatus("Inflate fehlgeschlagen: " + e.message, "err");
+    setStatus("Inflate fehlgeschlagen: " + (e?.message || String(e)), "err");
     return;
   }
 
