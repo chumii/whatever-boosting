@@ -243,6 +243,18 @@ local function buildMainFrame()
     exportBtn:SetText("Export")
     exportBtn:SetScript("OnClick", function() WB.ShowExportDialog() end)
 
+    local ktCheck = CreateFrame("CheckButton", nil, mainFrame, "UICheckButtonTemplate")
+    ktCheck:SetSize(20, 20)
+    ktCheck:SetPoint("LEFT", refreshBtn, "RIGHT", 12, 0)
+    ktCheck:SetScript("OnClick", function()
+        if WB.KeystoneTrader then WB.KeystoneTrader.Toggle() end
+    end)
+    local ktLabel = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    ktLabel:SetPoint("LEFT", ktCheck, "RIGHT", 2, 0)
+    ktLabel:SetText("Keystone Trader")
+    ktLabel:SetTextColor(0.45, 0.45, 0.45)
+    mainFrame.ktCheck = ktCheck
+
     -- Trade check item level input
     local tradeLevelBox = CreateFrame("EditBox", "WBTradeLevelBox", mainFrame, "InputBoxTemplate")
     tradeLevelBox:SetSize(46, 22)
@@ -297,6 +309,9 @@ function WB.ToggleUI()
     if mainFrame:IsShown() then
         mainFrame:Hide()
     else
+        if mainFrame.ktCheck and WB.KeystoneTrader then
+            mainFrame.ktCheck:SetChecked(WB.KeystoneTrader.IsEnabled())
+        end
         WB.RebuildRows()
         mainFrame:Show()
     end
