@@ -229,7 +229,7 @@ local function buildMainFrame()
     mainFrame:SetClampedToScreen(true)
     mainFrame:SetFrameStrata("MEDIUM")
     mainFrame:Hide()
-    local version = GetAddOnMetadata("WhateverBoosting", "Version") or "?"
+    local version = C_AddOns.GetAddOnMetadata("WhateverBoosting", "Version") or "?"
     mainFrame.TitleText:SetText("Whatever Boosting  v" .. version)
 
     local refreshBtn = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
