@@ -24,23 +24,11 @@
       </a>
       <span class="addon-version">v1.0.1</span>
 
-      <div id="gate">
-        <div class="gate-box">
-          <div class="gate-label">WhateverRoyale — Passwort</div>
-          <div class="gate-row">
-            <input class="gate-input" id="pw-input" type="password" autocomplete="current-password" />
-            <button class="gate-btn" id="pw-btn">OK</button>
-          </div>
-          <div class="gate-error" id="pw-error"></div>
-        </div>
-      </div>
-      <div id="content" style="display:none">
-        <a class="addon-download" href="WhateverRoyale-v2.0.1.zip" download>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>WhateverRoyale</span>
-        </a>
-        <span class="addon-version">v2.0.1</span>
-      </div>
+      <a class="addon-download" id="wr-download-btn" href="WhateverRoyale-v2.0.1.zip" download>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>WhateverRoyale</span>
+      </a>
+      <span class="addon-version">v2.0.1</span>
     </div>
 
     <main>
@@ -105,6 +93,15 @@
     </main>
 
     <dialog id="session-dialog" class="session-dialog"></dialog>
+
+    <dialog id="wr-pw-dialog" class="wr-pw-dialog">
+      <div class="gate-label" style="margin-bottom:8px">WhateverRoyale — Passwort</div>
+      <div class="gate-row">
+        <input class="gate-input" id="wr-pw-input" type="password" autocomplete="current-password" />
+        <button class="gate-btn" id="wr-pw-ok">OK</button>
+      </div>
+      <div class="gate-error" id="wr-pw-error"></div>
+    </dialog>
 
     <script type="module" src="./app.js"></script>
   </body>

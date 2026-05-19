@@ -1,6 +1,5 @@
 import * as db from "./src/js/supabase.js";
 import { aggregateStats, computeSessionStats, formatGold, formatGoldPlain } from "./src/js/stats.js";
-import { installGate } from "./src/js/gate.js";
 import { PASSWORD } from "./src/js/config.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -259,4 +258,49 @@ async function load() {
 
 $("#refresh-btn").addEventListener("click", load);
 load();
-installGate({ password: PASSWORD, storageKey: "royale-auth" });
+
+(function initWrDownload() {
+  const btn    = document.getElementById("wr-download-btn");
+  const dialog = document.getElementById("wr-pw-dialog");
+  const input  = document.getElementById("wr-pw-input");
+  const ok     = document.getElementById("wr-pw-ok");
+  const error  = document.getElementById("wr-pw-error");
+
+  function triggerDownload() {
+    const a = document.createElement("a");
+    a.href = "WhateverRoyale-v2.0.1.zip";
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  if (sessionStorage.getItem("royale-auth") === "1") {
+    btn.addEventListener("click", (e) => { e.preventDefault(); triggerDownload(); });
+    return;
+  }
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    error.textContent = "";
+    input.value = "";
+    dialog.showModal();
+    input.focus();
+  });
+
+  function attempt() {
+    if (input.value === PASSWORD) {
+      sessionStorage.setItem("royale-auth", "1");
+      dialog.close();
+      triggerDownload();
+    } else {
+      error.textContent = "Falsches Passwort.";
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  ok.addEventListener("click", attempt);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") attempt(); });
+  dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+}());

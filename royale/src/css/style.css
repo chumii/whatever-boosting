@@ -78,12 +78,11 @@ body {
 .addon-download svg { flex-shrink: 0; }
 .addon-version { padding: 0 4px; font-size: 11px; color: var(--muted); opacity: 0.6; margin-right: 12px; }
 
-.addon-bar #gate { display: inline-flex; align-items: center; height: auto; }
-.addon-bar .gate-box { flex-direction: row; align-items: center; width: auto; gap: 8px; }
-.addon-bar .gate-label { font-size: 12px; white-space: nowrap; }
-.addon-bar .gate-row { gap: 6px; }
-.addon-bar .gate-input { width: 140px; }
-.addon-bar .gate-error { min-height: 0; }
+.wr-pw-dialog {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text); padding: 16px; width: 280px;
+}
+.wr-pw-dialog::backdrop { background: rgba(0,0,0,0.65); }
 
 /* ── Main (no sidebar) ────────────────────────────────── */
 
