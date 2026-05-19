@@ -2,7 +2,7 @@
 ## Title: Whatever Boosting
 ## Notes: Collect M+ character data and export to the Whatever Boosting webapp
 ## Author: Jonas
-## Version: 1.1
+## Version: 1.2
 ## SavedVariables: WhateverBoostingDB
 
 libs/LibBase64.lua
