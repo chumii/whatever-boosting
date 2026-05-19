@@ -1,5 +1,7 @@
 import * as db from "./src/js/supabase.js";
 import { aggregateStats, computeSessionStats, formatGold, formatGoldPlain } from "./src/js/stats.js";
+import { installGate } from "./src/js/gate.js";
+import { PASSWORD } from "./src/js/config.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -257,3 +259,4 @@ async function load() {
 
 $("#refresh-btn").addEventListener("click", load);
 load();
+installGate({ password: PASSWORD, storageKey: "royale-auth" });
