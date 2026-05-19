@@ -94,9 +94,8 @@ end
 
 local function hideAll()
     setBinding(false)
-    onHover      = false
-    locked       = false
-    targetLevel  = 0
+    onHover = false
+    locked  = false
     if mainFrame then mainFrame:Hide() end
 end
 
