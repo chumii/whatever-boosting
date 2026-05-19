@@ -94,8 +94,9 @@ end
 
 local function hideAll()
     setBinding(false)
-    onHover = false
-    locked  = false
+    onHover     = false
+    locked      = false
+    targetLevel = 0
     if mainFrame then mainFrame:Hide() end
 end
 
@@ -200,11 +201,10 @@ local function refresh()
     if shouldShow() then
         if not built then buildUI() end
         local lv = readKeyLevel()
-        if lv ~= keyLevel or keyLevel == 0 then
-            keyLevel = lv
-            if targetLevel == 0 or targetLevel > keyLevel then
-                targetLevel = keyLevel
-            end
+        local freshTarget = not mainFrame or not mainFrame:IsShown()
+        keyLevel = lv
+        if freshTarget or targetLevel == 0 or targetLevel > keyLevel then
+            targetLevel = keyLevel
         end
         updateDisplay()
         mainFrame:Show()
