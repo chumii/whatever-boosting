@@ -22,4 +22,13 @@ WB.DUNGEONS = {
     [369]  = "Mechagon Workshop",
     [381]  = "Theater of Pain",
     [1201] = "Cauldron of Carnage",
+    -- Midnight — Season 1
+    [556]  = "Pit of Saron",
+    [557]  = "Windrunner Spire",
+    [558]  = "Magisters' Terrace",
+    [559]  = "Nexus-Point Xenas",
+    [560]  = "Maisara Caverns",
+    [161]  = "Skyreach",
+    [239]  = "Seat of the Triumvirate",
+    [402]  = "Algeth'ar Academy",
 }
