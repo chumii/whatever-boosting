@@ -90,10 +90,18 @@ body {
   gap: 2px;
 }
 .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 8px;
   border-radius: 4px;
   color: var(--muted);
   font-size: 13px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 .nav-link:hover { color: var(--text); background: var(--surface-2); }
 .nav-link.active {
