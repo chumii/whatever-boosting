@@ -1347,9 +1347,13 @@ function setupImport() {
   }
 
   function openImportDialog() {
+    const savedPlayerId = localStorage.getItem("wb_import_player_id");
     playerSel.innerHTML =
       `<option value="">— select player —</option>` +
       state.players.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+    if (savedPlayerId && [...playerSel.options].some((o) => o.value === savedPlayerId)) {
+      playerSel.value = savedPlayerId;
+    }
     pasteInput.value = "";
     decodeStatus.className = "import-status";
     decodeStatus.textContent = "";
@@ -1362,6 +1366,11 @@ function setupImport() {
 
   $("#import-characters-btn").addEventListener("click", openImportDialog);
   $("#sidebar-import-btn").addEventListener("click", openImportDialog);
+
+  playerSel.addEventListener("change", () => {
+    if (playerSel.value) localStorage.setItem("wb_import_player_id", playerSel.value);
+    else localStorage.removeItem("wb_import_player_id");
+  });
 
   pasteInput.addEventListener("paste", () => requestAnimationFrame(triggerDecode));
   decodeBtn.addEventListener("click", triggerDecode);
