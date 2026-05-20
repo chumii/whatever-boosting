@@ -387,6 +387,10 @@ td.num .cell-editor { text-align: right; font-family: var(--font-mono); }
   font-size: 13px;
   text-decoration: none;
   cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
 }
 .sidebar-download:hover { color: var(--text); background: var(--surface-2); }
 .sidebar-download svg { flex-shrink: 0; }

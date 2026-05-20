@@ -1346,7 +1346,7 @@ function setupImport() {
     updateConfirmBtn();
   }
 
-  $("#import-characters-btn").addEventListener("click", () => {
+  function openImportDialog() {
     playerSel.innerHTML =
       `<option value="">— select player —</option>` +
       state.players.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
@@ -1358,7 +1358,10 @@ function setupImport() {
     confirmBtn.disabled = true;
     classified = null;
     dlg.showModal();
-  });
+  }
+
+  $("#import-characters-btn").addEventListener("click", openImportDialog);
+  $("#sidebar-import-btn").addEventListener("click", openImportDialog);
 
   pasteInput.addEventListener("paste", () => requestAnimationFrame(triggerDecode));
   decodeBtn.addEventListener("click", triggerDecode);
