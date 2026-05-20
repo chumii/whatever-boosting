@@ -33,7 +33,7 @@ const classByName = (name) => state.classes.find((c) => c.name === name);
 
 // ---------- View / tab routing ----------
 function setupNav() {
-  $$(".nav-link").forEach((link) => {
+  $$(".nav-link[data-view]").forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
       const view = link.dataset.view;
