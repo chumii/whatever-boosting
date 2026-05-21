@@ -194,7 +194,7 @@ function openSessionModal(row) {
   dialog.showModal();
 }
 
-// ── Sessions table ───────────────────────────────────────────────────────────
+// ── Sessions grid ────────────────────────────────────────────────────────────
 
 function getSessionStake(session, gameType) {
   const rounds = Array.isArray(session.rounds)
@@ -211,37 +211,85 @@ function getSessionStake(session, gameType) {
   return null;
 }
 
-function renderSessions(sessions) {
-  $("#sessions-heading").textContent = `Sessions (${sessions.length})`;
+const PAGE_SIZE = 15;
+let _allSessions = [];
+let _filter = "all";
+let _page = 1;
 
-  const tbody = $("#sessions-table tbody");
-  tbody.innerHTML = "";
+function filteredSessions() {
+  if (_filter === "all") return _allSessions;
+  return _allSessions.filter(s => s.game_type === _filter);
+}
 
-  if (sessions.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">Noch keine Sessions importiert</td></tr>';
+function buildSessionCard(row) {
+  const session = row.raw_data || {};
+  const { totalRounds, totalPayouts } = computeSessionStats(session);
+  const stake = getSessionStake(session, row.game_type);
+
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "session-card";
+  card.innerHTML = `
+    <div class="sc-top">
+      <span class="sc-date mono">${formatDate(row.start_time)}</span>
+      <span class="sc-type">${gameTypeLabel(row.game_type)}</span>
+    </div>
+    <div class="sc-mid">
+      <span class="sc-host muted">${stripRealm(row.host_character || "")}</span>
+      <span class="sc-rounds mono">${totalRounds} Runden</span>
+    </div>
+    <div class="sc-bot">
+      <span class="sc-stake muted">Einsatz <span class="mono">${stake !== null ? formatGoldPlain(stake) : "—"}</span></span>
+      <span class="sc-payout gold mono">${formatGoldPlain(totalPayouts)}</span>
+    </div>`;
+  card.addEventListener("click", () => openSessionModal(row));
+  return card;
+}
+
+function renderSessionsView() {
+  const list  = filteredSessions();
+  const total = list.length;
+  $("#sessions-heading").textContent = `Sessions (${_allSessions.length})`;
+
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (_page > pages) _page = pages;
+
+  const grid  = $("#sessions-grid");
+  const empty = $("#sessions-empty");
+  grid.innerHTML = "";
+
+  if (total === 0) {
+    empty.textContent = _allSessions.length === 0
+      ? "Noch keine Sessions importiert"
+      : "Keine Sessions für diesen Filter.";
+    empty.classList.remove("hidden");
+    $("#pager-info").textContent = "0 / 0";
+    $("#pager-prev").disabled = true;
+    $("#pager-next").disabled = true;
     return;
   }
+  empty.classList.add("hidden");
 
-  for (const row of sessions) {
-    const session = row.raw_data || {};
-    const { totalRounds, totalPayouts } = computeSessionStats(session);
-    const stake = getSessionStake(session, row.game_type);
-    const tr = document.createElement("tr");
-    tr.className = "clickable-row";
-    tr.innerHTML = `
-      <td>${formatDate(row.start_time)}</td>
-      <td>${gameTypeLabel(row.game_type)}</td>
-      <td class="muted">${stripRealm(row.host_character || "")}</td>
-      <td class="num">${totalRounds}</td>
-      <td class="num muted">${stake !== null ? formatGoldPlain(stake) : "—"}</td>
-      <td class="num gold">${formatGoldPlain(totalPayouts)}</td>
-      <td class="detail-hint muted">›</td>`;
-    tr.addEventListener("click", () => openSessionModal(row));
-    tbody.append(tr);
-  }
+  const slice = list.slice((_page - 1) * PAGE_SIZE, _page * PAGE_SIZE);
+  for (const row of slice) grid.append(buildSessionCard(row));
+
+  $("#pager-info").textContent = `${_page} / ${pages}`;
+  $("#pager-prev").disabled = _page <= 1;
+  $("#pager-next").disabled = _page >= pages;
+}
+
+function renderSessions(sessions) {
+  _allSessions = sessions;
+  _page = 1;
+  renderSessionsView();
 }
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
+
+function isEmptySession(row) {
+  const { totalRounds, totalPayouts } = computeSessionStats(row.raw_data || {});
+  return totalRounds === 0 && totalPayouts === 0;
+}
 
 async function load() {
   try {
@@ -249,14 +297,28 @@ async function load() {
       db.listSessions(),
       db.listCharacters(),
     ]);
-    renderStats(aggregateStats(sessions, characters));
-    renderSessions(sessions);
+    const nonEmpty = sessions.filter(s => !isEmptySession(s));
+    renderStats(aggregateStats(nonEmpty, characters));
+    renderSessions(nonEmpty);
   } catch (err) {
     console.error("Ladefehler:", err);
   }
 }
 
 $("#refresh-btn").addEventListener("click", load);
+
+$("#pager-prev").addEventListener("click", () => { _page--; renderSessionsView(); });
+$("#pager-next").addEventListener("click", () => { _page++; renderSessionsView(); });
+
+$("#sessions-filter").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  $("#sessions-filter").querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === chip));
+  _filter = chip.dataset.filter;
+  _page = 1;
+  renderSessionsView();
+});
+
 load();
 
 (function initWrDownload() {
@@ -268,7 +330,7 @@ load();
 
   function triggerDownload() {
     const a = document.createElement("a");
-    a.href = "WhateverRoyale-v2.0.1.zip";
+    a.href = "WhateverRoyale-v2.0.2.zip";
     a.download = "";
     document.body.appendChild(a);
     a.click();

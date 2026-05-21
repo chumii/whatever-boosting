@@ -24,11 +24,11 @@
       </a>
       <span class="addon-version">v1.0.1</span>
 
-      <a class="addon-download" id="wr-download-btn" href="WhateverRoyale-v2.0.1.zip" download>
+      <a class="addon-download" id="wr-download-btn" href="WhateverRoyale-v2.0.2.zip" download>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>WhateverRoyale</span>
       </a>
-      <span class="addon-version">v2.0.1</span>
+      <span class="addon-version">v2.0.2</span>
     </div>
 
     <main>
@@ -51,7 +51,9 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="lower-section">
+
+      <div class="card card-leaderboard">
         <div class="card-header">
           <h2 id="leaderboard-heading">Rangliste</h2>
           <button class="btn btn-primary" id="refresh-btn">Aktualisieren</button>
@@ -70,26 +72,30 @@
         </table>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h2 id="sessions-heading">Sessions</h2>
-          <a class="btn btn-primary" href="/royale/import/">Import</a>
+      <div class="card card-sessions" id="sessions-card">
+        <div class="card-header sessions-header">
+          <div class="sessions-header-left">
+            <h2 id="sessions-heading">Sessions</h2>
+            <div class="filter-chips" id="sessions-filter">
+              <button class="chip active" data-filter="all" type="button">Alle</button>
+              <button class="chip" data-filter="simpleDice" type="button">Simple Dice</button>
+              <button class="chip" data-filter="deathRoll" type="button">Death Roll</button>
+            </div>
+          </div>
+          <div class="sessions-header-right">
+            <div class="pager">
+              <button class="btn pager-btn" id="pager-prev" type="button" aria-label="Vorherige Seite">‹</button>
+              <span class="pager-info" id="pager-info">— / —</span>
+              <button class="btn pager-btn" id="pager-next" type="button" aria-label="Nächste Seite">›</button>
+            </div>
+            <a class="btn btn-primary" href="/royale/import/">Import</a>
+          </div>
         </div>
-        <table class="data-table" id="sessions-table">
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th>Typ</th>
-              <th>Host</th>
-              <th class="num">Runden</th>
-              <th class="num">Einsatz</th>
-              <th class="num">Auszahlung</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="session-grid" id="sessions-grid"></div>
+        <div class="empty hidden" id="sessions-empty">Keine Sessions für diesen Filter.</div>
       </div>
+
+      </div><!-- /.lower-section -->
     </main>
 
     <dialog id="session-dialog" class="session-dialog"></dialog>
