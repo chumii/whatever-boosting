@@ -1,6 +1,12 @@
 .env
 .env.local
 .DS_Store
-boosting/src/js/config.js
-offi-stuff/src/js/config.js
-royale/src/js/config.js
+
+# Next.js
+.next/
+node_modules/
+
+# Generated config files (written by build-config.js)
+public/boosting/src/js/config.js
+public/offi-stuff/src/js/config.js
+public/royale/src/js/config.js

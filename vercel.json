@@ -1,4 +1,3 @@
 {
-  "buildCommand": "node scripts/build-config.js",
-  "outputDirectory": "."
+  "buildCommand": "node scripts/build-config.js && next build"
 }
