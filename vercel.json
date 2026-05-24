@@ -1,3 +1,4 @@
 {
+  "framework": "nextjs",
   "buildCommand": "node scripts/build-config.js && next build"
 }
