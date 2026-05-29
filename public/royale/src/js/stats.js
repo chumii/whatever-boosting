@@ -76,9 +76,11 @@ export function aggregateStats(sessions, characters) {
 
   // Sort leaderboard descending by net gold; include per-char breakdown sorted the same way
   const sorted = Object.entries(leaderboardMap)
-    .map(([id, { net, chars }]) => ({
+    .map(([id, { net, won, lost, chars }]) => ({
       id,
       net,
+      won,
+      lost,
       chars: Object.entries(chars)
         .map(([cid, n]) => ({ id: cid, net: n }))
         .sort((a, b) => b.net - a.net),
