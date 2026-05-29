@@ -39,8 +39,8 @@ function renderStats(stats) {
 
   stats.leaderboard.forEach((entry, i) => {
     const hasAlts = entry.chars.some(c => c.id !== entry.id);
-    const won  = entry.net > 0 ? entry.net : 0;
-    const lost = entry.net < 0 ? -entry.net : 0;
+    const won  = entry.won  ?? 0;
+    const lost = entry.lost ?? 0;
 
     const tr = document.createElement("tr");
     tr.className = "lb-main";

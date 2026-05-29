@@ -4,6 +4,8 @@
 // rounds can be a JS array (from LibJSON integer-keyed table) or an object — both handled.
 export function computeSessionStats(session) {
   const leaderboard = {};
+  const wonMap      = {};
+  const lostMap     = {};
   let totalRounds  = 0;
   let totalPayouts = 0;
 
@@ -12,11 +14,13 @@ export function computeSessionStats(session) {
     const { winner, loser, payoutAmount } = round.results;
     leaderboard[winner] = (leaderboard[winner] ?? 0) + payoutAmount;
     leaderboard[loser]  = (leaderboard[loser]  ?? 0) - payoutAmount;
+    wonMap[winner]  = (wonMap[winner]  ?? 0) + payoutAmount;
+    lostMap[loser]  = (lostMap[loser]  ?? 0) + payoutAmount;
     totalRounds++;
     totalPayouts += payoutAmount;
   }
 
-  return { totalRounds, totalPayouts, leaderboard };
+  return { totalRounds, totalPayouts, leaderboard, wonMap, lostMap };
 }
 
 // Build a map: characterId → canonical key (main's characterId, or own if main/unlinked).
@@ -49,14 +53,16 @@ export function aggregateStats(sessions, characters) {
     totalSessions++;
     byGameType[row.game_type] = (byGameType[row.game_type] ?? 0) + 1;
 
-    const { totalRounds: r, totalPayouts: p, leaderboard: lb } = computeSessionStats(session);
+    const { totalRounds: r, totalPayouts: p, leaderboard: lb, wonMap, lostMap } = computeSessionStats(session);
     totalRounds += r;
     totalVolume += p;
 
     for (const [charId, net] of Object.entries(lb)) {
       const key = mainMap[charId] ?? charId;
-      if (!leaderboardMap[key]) leaderboardMap[key] = { net: 0, chars: {} };
-      leaderboardMap[key].net += net;
+      if (!leaderboardMap[key]) leaderboardMap[key] = { net: 0, won: 0, lost: 0, chars: {} };
+      leaderboardMap[key].net  += net;
+      leaderboardMap[key].won  += wonMap[charId]  ?? 0;
+      leaderboardMap[key].lost += lostMap[charId] ?? 0;
       leaderboardMap[key].chars[charId] = (leaderboardMap[key].chars[charId] ?? 0) + net;
     }
 
